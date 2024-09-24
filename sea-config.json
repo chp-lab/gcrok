@@ -1,0 +1,7 @@
+{
+    "main": "/Users/chatpethkenanan/INET/ebike/gcrok/bin/gcrok.js", 
+    "output": "sea-prep.blob",
+    "assets": {
+        "openurl.js": "/Users/chatpethkenanan/INET/ebike/gcrok/node_modules/openurl/openurl.js"
+    }
+}

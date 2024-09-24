@@ -1,11 +1,20 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
-const openurl = require('openurl');
-const yargs = require('yargs');
+// const openurl = require('openurl');
+// /Users/chatpethkenanan/INET/ebike/gcrok/node_modules/openurl/openurl.js
+const { createRequire } = require('node:module');
+require = createRequire(__filename);
+dir_require = createRequire(__dirname); 
 
-const localtunnel = require('../localtunnel');
-const { version } = require('../package');
+const openurl = dir_require('/Users/chatpethkenanan/INET/ebike/gcrok/node_modules/openurl');
+const yargs = dir_require('/Users/chatpethkenanan/INET/ebike/gcrok/node_modules/yargs');
+// const yargs = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/node_modules/yargs');
+
+const localtunnel = dir_require('/Users/chatpethkenanan/INET/ebike/gcrok/localtunnel');
+const { version } = dir_require('/Users/chatpethkenanan/INET/ebike/gcrok/package');
+// const gcrok_test = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/gcrok_test.js');
+// gcrok_test();
 
 const { argv } = yargs
   .usage(`Usage: node ./bin/gcrok.js --port [num] <options> 
