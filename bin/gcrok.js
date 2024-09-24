@@ -8,7 +8,8 @@ const localtunnel = require('../localtunnel');
 const { version } = require('../package');
 
 const { argv } = yargs
-  .usage('Usage: lt --port [num] <options>')
+  .usage(`Usage: node ./bin/gcrok.js --port [num] <options> 
+  e.g. node ./bin/gcrok.js --port <num> --host https://giantiot.com  --subdomain <username> `)
   .env(true)
   .option('p', {
     alias: 'port',
@@ -17,7 +18,7 @@ const { argv } = yargs
   .option('h', {
     alias: 'host',
     describe: 'Upstream server providing forwarding',
-    default: 'https://localtunnel.me',
+    default: 'https://www.facebook.com/people/Giantcom/61557528325069/',
   })
   .option('s', {
     alias: 'subdomain',
