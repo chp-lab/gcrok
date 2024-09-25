@@ -3,21 +3,27 @@
 
 // const openurl = require('openurl');
 // /Users/chatpethkenanan/INET/ebike/gcrok/node_modules/openurl/openurl.js
-const { createRequire } = require('node:module');
-const sub_dir = process.env.GCROK_SUB_DIR ? process.env.GCROK_SUB_DIR : '';
-const this_dir = __dirname + sub_dir;
-require = createRequire(__filename);
-dir_require = createRequire(__dirname);
+// const { createRequire } = require('node:module');
+// const sub_dir = process.env.GCROK_SUB_DIR ? process.env.GCROK_SUB_DIR : '';
+// const this_dir = __dirname + sub_dir;
+// require = createRequire(__filename);
+// dir_require = createRequire(__dirname);
 
-console.log('sea_lib dir:', this_dir);
-const openurl = dir_require(this_dir + '/openurl');
-const yargs = dir_require(this_dir + '/yargs');
+// console.log('sea_lib dir:', this_dir);
+// const openurl = dir_require(this_dir + '/openurl');
+// const yargs = dir_require(this_dir + '/yargs');
 // const yargs = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/node_modules/yargs');
 
-const localtunnel = dir_require(this_dir + '/localtunnel');
-const { version } = dir_require(this_dir + '/package');
+// const localtunnel = dir_require(this_dir + '/localtunnel');
+// const { version } = dir_require(this_dir + '/package');
 // const gcrok_test = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/gcrok_test.js');
 // gcrok_test();
+
+const openurl = require('openurl');
+const yargs = require('yargs');
+
+const localtunnel = require('./localtunnel');
+const { version } = require('./package');
 
 const { argv } = yargs
   .usage(`Usage: node ./bin/gcrok.js --port [num] <options> 
