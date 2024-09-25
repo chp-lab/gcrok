@@ -30,7 +30,7 @@ const { argv } = yargs
   .option('h', {
     alias: 'host',
     describe: 'Upstream server providing forwarding',
-    default: 'https://www.facebook.com/people/Giantcom/61557528325069/',
+    default: 'https://giantiot.com',
   })
   .option('s', {
     alias: 'subdomain',
