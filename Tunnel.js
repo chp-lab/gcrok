@@ -125,6 +125,7 @@ module.exports = class Tunnel extends EventEmitter {
     this.tunnelCluster.on('dead', () => {
       // ignore when all socket dead
       // TODO handle when all remote dead and no client opening...
+      debug('tunnelCount:', tunnelCount);
       if(tunnelCount <= 0) {
         return;
       }
@@ -145,7 +146,7 @@ module.exports = class Tunnel extends EventEmitter {
       tunnelCount--;
       debug(process.uptime());
       debug('expected close[Tunnel balance: %d]', tunnelCount);
-      if(tunnelCount <= 10) {
+      if(tunnelCount <= 0) {
         tunnelCount++;
         setTimeout(this.tunnelCluster.open, 10);
         // this.tunnelCluster.open();
