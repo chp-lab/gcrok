@@ -147,7 +147,8 @@ module.exports = class Tunnel extends EventEmitter {
       debug('expected close[Tunnel balance: %d]', tunnelCount);
       if(tunnelCount <= 10) {
         tunnelCount++;
-        setTimeout(this.tunnelCluster.open, 100);
+        setTimeout(this.tunnelCluster.open, 10);
+        // this.tunnelCluster.open();
       }
     });
 

@@ -95,7 +95,7 @@ module.exports = class TunnelCluster extends EventEmitter {
         : net.connect({ host: localHost, port: localPort, keepAlive: true});
 
       // local.setKeepAlive(true);
-      // local.setTimeout(600000);
+      local.setTimeout(60000);
       const remoteClose = () => {
         debug('remote close');
         this.emit('dead');
