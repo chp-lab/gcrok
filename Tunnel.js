@@ -116,12 +116,11 @@ module.exports = class Tunnel extends EventEmitter {
       this.once('close', closeHandler);
       tunnel.once('close', () => {
         tunnel.end();
-        tunnel.destroy();
-        debug('destroy closed tunnel');
+        // tunnel.destroy();
         this.removeListener('close', closeHandler);
       });
       tunnel.on('timeout', () => {
-        debug('...socket timeout');
+        debug('socket timeout');
         tunnel.end();
       })
     });
@@ -154,7 +153,7 @@ module.exports = class Tunnel extends EventEmitter {
       tunnelCount--;
       debug(process.uptime());
       debug('expected close[Tunnel balance: %d]', tunnelCount);
-      if(tunnelCount <= 5) {
+      if(tunnelCount <= info.max_conn) {
         tunnelCount++;
         setTimeout(this.tunnelCluster.open, 10);
         // this.tunnelCluster.open();
