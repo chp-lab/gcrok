@@ -8,6 +8,7 @@ Great for working with browser testing tools like browserling or external api ca
 
 ```
 git clone https://github.com/chp-lab/crok.git
+node ./gcrok.js --port <port> --host https://giantiot.com
 node ./gcrok.js --port 1880 --host https://giantiot.com
 ```
 

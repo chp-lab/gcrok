@@ -1,5 +1,5 @@
 const { EventEmitter } = require('events');
-const debug = require('debug')('localtunnel:client');
+const debug = require('debug')('localtunnel:cluster');
 const fs = require('fs');
 const net = require('net');
 const tls = require('tls');
@@ -15,7 +15,12 @@ module.exports = class TunnelCluster extends EventEmitter {
 
   open() {
     const opt = this.opts;
-
+    if(opt === undefined) {
+      debug('opt is undef');
+      // remote.destroy();
+      // this.emit('dead');
+      return;
+    }
     // Prefer IP if returned by the server
     const remoteHostOrIp = opt.remote_ip || opt.remote_host;
     const remotePort = opt.remote_port;
@@ -40,6 +45,7 @@ module.exports = class TunnelCluster extends EventEmitter {
     });
 
     remote.setKeepAlive(true);
+    remote.setTimeout(60000);
 
     remote.on('error', err => {
       debug('got remote connection error', err.message);
@@ -61,6 +67,7 @@ module.exports = class TunnelCluster extends EventEmitter {
     const connLocal = () => {
       if (remote.destroyed) {
         debug('remote destroyed');
+        // Nirvana
         this.emit('dead');
         return;
       }
@@ -82,10 +89,13 @@ module.exports = class TunnelCluster extends EventEmitter {
             };
 
       // connection to local http server
+      debug('isHttps:', opt.local_https);
       const local = opt.local_https
         ? tls.connect({ host: localHost, port: localPort, ...getLocalCertOpts() })
-        : net.connect({ host: localHost, port: localPort });
+        : net.connect({ host: localHost, port: localPort, keepAlive: true});
 
+      // local.setKeepAlive(true);
+      // local.setTimeout(600000);
       const remoteClose = () => {
         debug('remote close');
         this.emit('dead');
@@ -114,6 +124,7 @@ module.exports = class TunnelCluster extends EventEmitter {
 
       local.once('connect', () => {
         debug('connected locally');
+        // fire connect event to Tunnel
         remote.resume();
 
         let stream = remote;
@@ -129,7 +140,11 @@ module.exports = class TunnelCluster extends EventEmitter {
 
         // when local closes, also get a new remote
         local.once('close', hadError => {
-          debug('local connection closed [%s]', hadError);
+          debug('local connection closed [error: %s]', hadError);
+          debug('local socket timeout:', local.timeout);
+          // emit close event to Tunnel
+          this.emit('close');
+          return;
         });
       });
     };
