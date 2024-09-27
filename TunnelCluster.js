@@ -16,7 +16,7 @@ module.exports = class TunnelCluster extends EventEmitter {
   open() {
     const opt = this.opts;
     if(opt === undefined) {
-      debug('opt is undef');
+      // debug('opt is undef');
       return;
     }
     // Prefer IP if returned by the server
@@ -43,7 +43,7 @@ module.exports = class TunnelCluster extends EventEmitter {
     });
 
     remote.setKeepAlive(true);
-    remote.setTimeout(60000);
+    remote.setTimeout(2000);
 
     remote.on('error', err => {
       debug('got remote connection error', err.message);
@@ -90,10 +90,10 @@ module.exports = class TunnelCluster extends EventEmitter {
       // debug('isHttps:', opt.local_https);
       const local = opt.local_https
         ? tls.connect({ host: localHost, port: localPort, ...getLocalCertOpts() })
-        : net.connect({ host: localHost, port: localPort, keepAlive: true});
+        : net.connect({ host: localHost, port: localPort, keepAlive: false});
 
       // local.setKeepAlive(true);
-      local.setTimeout(10000);
+      local.setTimeout(2000);
       const remoteClose = () => {
         debug('remote close');
         this.emit('dead');
