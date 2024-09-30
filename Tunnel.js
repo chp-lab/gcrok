@@ -1,6 +1,7 @@
 /* eslint-disable consistent-return, no-underscore-dangle */
 
 const { parse } = require('url');
+// require('events').EventEmitter.defaultMaxListeners = 20;
 const { EventEmitter } = require('events');
 const axios = require('axios');
 const debug = require('debug')('localtunnel:client');
@@ -13,9 +14,10 @@ module.exports = class Tunnel extends EventEmitter {
     this.opts = opts;
     this.closed = false;
     if (!this.opts.host) {
-      this.opts.host = 'https://localtunnel.me';
+      this.opts.host = 'https://giantiot.com';
     }
   }
+
 
   _getInfo(body) {
     /* eslint-disable camelcase */
@@ -56,7 +58,6 @@ module.exports = class Tunnel extends EventEmitter {
     const assignedDomain = opt.subdomain;
     // where to quest
     const uri = baseUri + (assignedDomain || '?new');
-
     (function getUrl() {
       axios.post(baseUri + 'connect_client', {
         user: { email: 'teerachot@gmail.com', name: 'teerachot', 'userKey': 'cwdfwr1143rq' },
@@ -131,6 +132,7 @@ module.exports = class Tunnel extends EventEmitter {
       debug('tunnel open [total: %d]', tunnelCount);
 
       const closeHandler = () => {
+        debug('closeHandler');
         tunnel.destroy();
       };
 
@@ -140,15 +142,31 @@ module.exports = class Tunnel extends EventEmitter {
 
       this.once('close', closeHandler);
       tunnel.once('close', () => {
+        tunnel.end();
+        // tunnel.destroy();
         this.removeListener('close', closeHandler);
       });
+      tunnel.on('timeout', () => {
+        debug('socket timeout');
+        tunnel.end();
+      })
     });
 
     // when a tunnel dies, open a new one
     this.tunnelCluster.on('dead', () => {
+      // ignore when all socket dead
+      // TODO handle when all remote dead and no client opening...
+      debug('tunnelCount:', tunnelCount);
+      if(tunnelCount <= 0) {
+        // this.tunnelCluster.open();
+        debug('tunnel died all');
+        // this.close();
+        return;
+      }
       tunnelCount--;
-      debug('tunnel dead [total: %d]', tunnelCount);
+      debug('zZZZZ...tunnel dead [Tunnel balance: %d]', tunnelCount);
       if (this.closed) {
+        debug('dead tunnel closed');
         return;
       }
       this.tunnelCluster.open();
@@ -156,6 +174,17 @@ module.exports = class Tunnel extends EventEmitter {
 
     this.tunnelCluster.on('request', req => {
       this.emit('request', req);
+    });
+
+    this.tunnelCluster.on('close', () => {
+      tunnelCount--;
+      debug(process.uptime());
+      debug('expected close[Tunnel balance: %d]', tunnelCount);
+      if(tunnelCount <= info.max_conn) {
+        tunnelCount++;
+        setTimeout(this.tunnelCluster.open, 10);
+        // this.tunnelCluster.open();
+      }
     });
 
     // establish as many tunnels as allowed

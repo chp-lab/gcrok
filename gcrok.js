@@ -14,8 +14,9 @@
 // const yargs = dir_require(this_dir + '/yargs');
 // const yargs = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/node_modules/yargs');
 
-// const localtunnel = dir_require(this_dir + '/localtunnel');
-// const { version } = dir_require(this_dir + '/package');
+const localtunnel = dir_require(this_dir + '/localtunnel');
+const { version } = dir_require(this_dir + '/package');
+// const axios = require('axios');
 // const gcrok_test = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/gcrok_test.js');
 // gcrok_test();
 require('localenv');
@@ -36,7 +37,7 @@ const { argv } = yargs
   .option('h', {
     alias: 'host',
     describe: 'Upstream server providing forwarding',
-    default: 'https://www.facebook.com/people/Giantcom/61557528325069/',
+    default: 'https://giantiot.com',
   })
   .option('s', {
     alias: 'subdomain',
@@ -97,10 +98,40 @@ if (typeof argv.port !== 'number') {
   });
 
   tunnel.on('error', err => {
+    let tag = "tunnel_err"
+    console.debug(tag, err.message)
     throw err;
   });
 
+  function keepAlive(s_url) {
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: s_url,
+      headers: { }
+    };
+    
+    axios.request(config)
+    .then((response) => {
+      // console.log(JSON.stringify(response.data));
+    })
+    .catch((error) => {
+      try {
+        console.debug('keep alive:', error.response.status);
+      } catch {
+        console.debug('no error response');
+      }
+    });
+
+    console.debug("keep alive url:", s_url);
+  }
+
+  // let nIntervId;
+  // let this_url = tunnel.url;
   console.log('your url is: %s', tunnel.url);
+  // if (!nIntervId) {
+  //   nIntervId = setInterval(keepAlive, 15000, this_url);
+  // }
 
   /**
    * `cachedUrl` is set when using a proxy server that support resource caching.
