@@ -70,7 +70,7 @@ module.exports = class TunnelCluster extends EventEmitter {
         return;
       }
 
-      debug('connecting locally to %s://%s:%d', localProtocol, localHost, localPort);
+      // debug('connecting locally to %s://%s:%d', localProtocol, localHost, localPort);
       remote.pause();
 
       if (allowInvalidCert) {
