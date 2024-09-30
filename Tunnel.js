@@ -58,23 +58,50 @@ module.exports = class Tunnel extends EventEmitter {
     const uri = baseUri + (assignedDomain || '?new');
 
     (function getUrl() {
-      axios
-        .get(uri, params)
-        .then(res => {
-          const body = res.data;
-          debug('got tunnel information', res.data);
-          if (res.status !== 200) {
-            const err = new Error(
-              (body && body.message) || 'localtunnel server returned an error, please try again'
-            );
-            return cb(err);
+      axios.post(baseUri + 'connect_client', {
+        user: { email: 'teerachot@gmail.com', name: 'teerachot', 'userKey': 'cwdfwr1143rq' },
+        sub_domain: (assignedDomain || '?new')
+      }).then(function (res) {
+        const body = res.data;
+        debug('got tunnel information', res.data);
+        if (res.status !== 200) {
+          const err = new Error(
+            (body && body.message) || 'localtunnel server returned an error, please try again'
+          );
+          return cb(err);
+        } else {
+          if (res.data.message === 'already exist') {
+            // const err = new Error(
+            //   (body && body.data.message) || 'already exist'
+            // );
+            // return cb('err');
+            return
           }
-          cb(null, getInfo(body));
-        })
-        .catch(err => {
+        }
+        cb(null, getInfo(body));
+      })
+        .catch(function (err) {
           debug(`tunnel server offline: ${err.message}, retry 1s`);
           return setTimeout(getUrl, 1000);
-        });
+        })
+
+      // axios
+      //   .get(uri, params)
+      //   .then(res => {
+      //     const body = res.data;
+      //     debug('got tunnel information', res.data);
+      //     if (res.status !== 200) {
+      //       const err = new Error(
+      //         (body && body.message) || 'localtunnel server returned an error, please try again'
+      //       );
+      //       return cb(err);
+      //     }
+      //     cb(null, getInfo(body));
+      //   })
+      //   .catch(err => {
+      //     debug(`tunnel server offline: ${err.message}, retry 1s`);
+      //     return setTimeout(getUrl, 1000);
+      //   });
     })();
   }
 

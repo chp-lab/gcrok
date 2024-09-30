@@ -18,7 +18,7 @@
 // const { version } = dir_require(this_dir + '/package');
 // const gcrok_test = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/gcrok_test.js');
 // gcrok_test();
-
+require('localenv');
 const openurl = require('openurl');
 const yargs = require('yargs');
 
