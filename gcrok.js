@@ -6,6 +6,7 @@
 const { createRequire } = require('node:module');
 const sub_dir = process.env.GCROK_SUB_DIR ? process.env.GCROK_SUB_DIR : '';
 const this_dir = __dirname + sub_dir;
+require('localenv');
 require = createRequire(__filename);
 dir_require = createRequire(__dirname);
 
