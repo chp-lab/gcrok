@@ -8,13 +8,19 @@ Great for working with browser testing tools like browserling or external api ca
 
 ```
 git clone https://github.com/chp-lab/crok.git
-node ./gcrok.js --port <port> --host https://giantiot.com
-node ./gcrok.js --port 1880 --host https://giantiot.com
+First Option (via bash, git bash):
+npm run start-gcrok.sh
+Ready to access your services!!
+
+Or Secound Option (More flexibilities)
+node ./gcrok.js --port <service_port> --subdomain <your_sub_domain>
+node ./gcrok.js --port 3000 --subdomain my-sub-domain
+Note: subdomain cannot contain special character (~, _. ! @ etc.) Dash - is allow
 ```
 
 ## Installation
 
-### Globally
+### Binary Download
 
 ```
 Mac: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/macOS/mac.zip
@@ -22,24 +28,12 @@ Windows: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/windows/gcrok
 Linux: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/linux/gcrok-linux.zip
 ```
 
-### As a dependency in your project
-
 ```
--
+Mac: ./gcrok --port <service_port> --subdomain <your_sub_domain>
+e.g. ./gcrok --port 3000 --subdomain my-sub-domain
+Windows: ./gcrok-windows --port 3000 --subdomain my-sub-domain
+Linux: ./gcrok-linux --port 3000 --subdomain my-sub-domain
 ```
-
-## CLI usage
-
-When localtunnel is installed globally, just use the `lt` command to start the tunnel.
-
-```
-Mac: ./gcrok --port <port_num> --host https://giantiot.com 
-e.g. ./gcrok --port 1880 --host https://giantiot.com
-Windows: ./gcrok-windows ...
-Linux: ./gcrok-linux ....
-```
-
-Thats it! It will connect to the tunnel server, setup the tunnel, and tell you what url to use for your testing. This url will remain active for the duration of your session; so feel free to share it with others for happy fun time!
 
 ### Arguments
 
@@ -51,7 +45,7 @@ Below are some common arguments. See `./gcrok --help` for additional arguments
 You may also specify arguments via env variables. E.x.
 
 ```
-PORT=3000 ./gcrok
+PORT=3000 ./gcrok ...
 ```
 
 ## API
