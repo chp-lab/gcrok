@@ -6,53 +6,28 @@
 const { createRequire } = require('node:module');
 const sub_dir = process.env.GCROK_SUB_DIR ? process.env.GCROK_SUB_DIR : '';
 const this_dir = __dirname + sub_dir;
-var localenv = null;
-var openurl = null;
-var yargs = null;
-var localtunnel = null;
-var version = null;
+const axios = require('axios');
 
-console.debug("ARCH is", process.env.ARCH_BUILD);
-if(process.env.ARCH_BUILD == 'MAC') {
-  // mac only
-  require = createRequire(__filename);
-  dir_require = createRequire(__dirname);
+function loadModules(dir) {
+  const dir_require = createRequire(dir);
+  return {
+    localenv: dir_require(dir + '/localenv'),
+    openurl: dir_require(dir + '/openurl'),
+    yargs: dir_require(dir + '/yargs'),
+    localtunnel: dir_require(dir + '/localtunnel'),
+    version: dir_require(dir + '/package').this_version,
+  };
+}
 
-  // shared libs
-  localenv = dir_require(this_dir + '/localenv');
-  openurl = dir_require(this_dir + '/openurl');
-  yargs = dir_require(this_dir + '/yargs');
-  localtunnel = dir_require(this_dir + '/localtunnel');
-  const { this_version } = dir_require(this_dir + '/package');
-  version = this_version;
-
-} else if(process.env.ARCH_BUILD == 'LINUX') {
-  // mac only
-  require = createRequire(__filename);
-  dir_require = createRequire(__dirname);
-
-  // shared libs
-  localenv = dir_require(this_dir + '/localenv');
-  openurl = dir_require(this_dir + '/openurl');
-  yargs = dir_require(this_dir + '/yargs');
-  localtunnel = dir_require(this_dir + '/localtunnel');
-  const { this_version } = dir_require(this_dir + '/package');
-  version = this_version;
-
-} else if(process.env.ARCH_BUILD == 'WINDOWS') {
-// const axios = require('axios');
-// const gcrok_test = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/gcrok_test.js');
-// gcrok_test();
-
+if (process.env.ARCH_BUILD === 'MAC' || process.env.ARCH_BUILD === 'LINUX') {
+  ({ localenv, openurl, yargs, localtunnel, version } = loadModules(this_dir));
+} else if (process.env.ARCH_BUILD === 'WINDOWS') {
   openurl = require('openurl');
   yargs = require('yargs');
   localtunnel = require('./localtunnel');
-  const { this_version } = require('./package');
-  version = this_version;
+  version = require('./package').this_version;
 } else {
-  console.log(`Please define ARCH_BUILD='Your build/run environment'. e.g. ARCH_BUILD='MAC' in your environment variable
-Support ARCH_BUILD are MAC, LINUX, WINDOWS.
-  `);
+  console.log('Please define ARCH_BUILD in your environment variables.');
   return;
 }
 
@@ -60,44 +35,18 @@ const { argv } = yargs
   .usage(`Usage: node ./bin/gcrok.js --port [num] <options> 
   e.g. node ./bin/gcrok.js --port <num> --host https://giantiot.com  --subdomain <username> `)
   .env(true)
-  .option('p', {
-    alias: 'port',
-    describe: 'Internal HTTP server port',
-  })
-  .option('h', {
-    alias: 'host',
-    describe: 'Upstream server providing forwarding',
-    default: 'https://giantiot.com',
-  })
-  .option('s', {
-    alias: 'subdomain',
-    describe: 'Request this subdomain',
-  })
-  .option('l', {
-    alias: 'local-host',
-    describe: 'Tunnel traffic to this host instead of localhost, override Host header to this host',
-  })
-  .option('local-https', {
-    describe: 'Tunnel traffic to a local HTTPS server',
-  })
-  .option('local-cert', {
-    describe: 'Path to certificate PEM file for local HTTPS server',
-  })
-  .option('local-key', {
-    describe: 'Path to certificate key file for local HTTPS server',
-  })
-  .option('local-ca', {
-    describe: 'Path to certificate authority file for self-signed certificates',
-  })
-  .option('allow-invalid-cert', {
-    describe: 'Disable certificate checks for your local HTTPS server (ignore cert/key/ca options)',
-  })
-  .options('o', {
-    alias: 'open',
-    describe: 'Opens the tunnel URL in your browser',
-  })
-  .option('print-requests', {
-    describe: 'Print basic request info',
+  .options({
+    'p': { alias: 'port', describe: 'Internal HTTP server port', demandOption: true },
+    'h': { alias: 'host', describe: 'Upstream server', default: 'https://giantiot.com' },
+    's': { alias: 'subdomain', describe: 'Request this subdomain' },
+    'l': { alias: 'local-host', describe: 'Tunnel traffic to this host instead of localhost' },
+    'local-https': { describe: 'Tunnel traffic to a local HTTPS server', type: 'boolean' },
+    'local-cert': { describe: 'Path to certificate PEM file for local HTTPS server' },
+    'local-key': { describe: 'Path to certificate key file for local HTTPS server' },
+    'local-ca': { describe: 'Path to certificate authority file' },
+    'allow-invalid-cert': { describe: 'Disable certificate checks', type: 'boolean' },
+    'o': { alias: 'open', describe: 'Opens the tunnel URL in your browser' },
+    'print-requests': { describe: 'Print basic request info', type: 'boolean' }
   })
   .require('port')
   .boolean('local-https')
@@ -124,7 +73,8 @@ if (typeof argv.port !== 'number') {
     local_ca: argv.localCa,
     allow_invalid_cert: argv.allowInvalidCert,
   }).catch(err => {
-    throw err;
+    console.error('Error creating tunnel:', err.message);
+    process.exit(1);
   });
 
   tunnel.on('error', err => {
@@ -133,29 +83,25 @@ if (typeof argv.port !== 'number') {
     throw err;
   });
 
-  function keepAlive(s_url) {
-    let config = {
+  function keepAlive(url) {
+    const config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: s_url,
-      headers: { }
+      url,
     };
-    
+  
     axios.request(config)
-    .then((response) => {
-      // console.log(JSON.stringify(response.data));
-    })
-    .catch((error) => {
-      try {
-        console.debug('keep alive:', error.response.status);
-      } catch {
-        console.debug('no error response');
-      }
-    });
-
-    console.debug("keep alive url:", s_url);
+      .then(() => {
+        console.debug('Keep-alive request successful');
+      })
+      .catch((error) => {
+        const status = error.response ? error.response.status : 'No response';
+        console.debug('Keep-alive error:', status);
+      });
+  
+    console.debug('Keep-alive URL:', url);
   }
-
+  
   // let nIntervId;
   // let this_url = tunnel.url;
   console.log('your url is: %s', tunnel.url);
