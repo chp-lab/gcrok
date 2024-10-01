@@ -10,16 +10,17 @@ Great for working with browser testing tools like browserling or external api ca
 git clone https://github.com/chp-lab/crok.git
 First Option (via bash, git bash):
 npm run start-gcrok.sh
+Ready to access your services!!
 
-Secound Option (More flexibilities)
-node --env-file .env ./gcrok.js --port <service_port> --subdomain <your_sub_domain>
-node --env-file .env ./gcrok.js --port 3000 --subdomain my-sub-domain
+Or Secound Option (More flexibilities)
+node ./gcrok.js --port <service_port> --subdomain <your_sub_domain>
+node ./gcrok.js --port 3000 --subdomain my-sub-domain
 Note: subdomain cannot contain special character (~, _. ! @ etc.) Dash - is allow
 ```
 
 ## Installation
 
-### Globally
+### Binary Download
 
 ```
 Mac: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/macOS/mac.zip
@@ -28,10 +29,10 @@ Linux: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/linux/gcrok-lin
 ```
 
 ```
-Mac: ./gcrok --env-file .env ./gcrok.js --port <service_port> --subdomain <your_sub_domain>
-e.g. --env-file .env ./gcrok.js --port 3000 --subdomain my-sub-domain
-Windows: ./gcrok-windows --env-file .env ./gcrok.js --port 3000 --subdomain my-sub-domain
-Linux: ./gcrok-linux --env-file .env ./gcrok.js --port 3000 --subdomain my-sub-domain
+Mac: ./gcrok --port <service_port> --subdomain <your_sub_domain>
+e.g. ./gcrok --port 3000 --subdomain my-sub-domain
+Windows: ./gcrok-windows --port 3000 --subdomain my-sub-domain
+Linux: ./gcrok-linux --port 3000 --subdomain my-sub-domain
 ```
 
 ### Arguments

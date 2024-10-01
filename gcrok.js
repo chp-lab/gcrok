@@ -27,7 +27,7 @@ if(platform == 'darwin') {
   const { this_version } = dir_require(this_dir + '/package');
   version = this_version;
 
-} else if(platform == 'LINUX') {
+} else if(platform == 'linux') {
   // mac only
   require = createRequire(__filename);
   dir_require = createRequire(__dirname);
