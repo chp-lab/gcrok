@@ -9,7 +9,9 @@ Great for working with browser testing tools like browserling or external api ca
 ```
 git clone https://github.com/chp-lab/crok.git
 First Option (via bash, git bash):
-npm run start-gcrok.sh 
+npm run start-gcrok.sh
+
+Secound Option (More flexibilities)
 node --env-file .env ./gcrok.js --port <service_port> --subdomain <your_sub_domain>
 node --env-file .env ./gcrok.js --port 3000 --subdomain my-sub-domain
 Note: subdomain cannot contain special character (~, _. ! @ etc.) Dash - is allow
@@ -25,24 +27,12 @@ Windows: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/windows/gcrok
 Linux: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/linux/gcrok-linux.zip
 ```
 
-### As a dependency in your project
-
-```
--
-```
-
-## CLI usage
-
-When localtunnel is installed globally, just use the `lt` command to start the tunnel.
-
 ```
 Mac: ./gcrok --env-file .env ./gcrok.js --port <service_port> --subdomain <your_sub_domain>
 e.g. --env-file .env ./gcrok.js --port 3000 --subdomain my-sub-domain
-Windows: ./gcrok-windows --env-file .env ...
-Linux: ./gcrok-linux --env-file .env ...
+Windows: ./gcrok-windows --env-file .env ./gcrok.js --port 3000 --subdomain my-sub-domain
+Linux: ./gcrok-linux --env-file .env ./gcrok.js --port 3000 --subdomain my-sub-domain
 ```
-
-Thats it! It will connect to the tunnel server, setup the tunnel, and tell you what url to use for your testing. This url will remain active for the duration of your session; so feel free to share it with others for happy fun time!
 
 ### Arguments
 
