@@ -8,8 +8,8 @@ Great for working with browser testing tools like browserling or external api ca
 
 ```
 git clone https://github.com/chp-lab/crok.git
-node ./gcrok.js --port <port> --host https://giantiot.com
-node ./gcrok.js --port 1880 --host https://giantiot.com
+node ./gcrok.js --port <port> --subdomain <your_sub_domain>
+node ./gcrok.js --port 1880 --subdomain your_sub_domain
 ```
 
 ## Installation
@@ -33,8 +33,8 @@ Linux: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/linux/gcrok-lin
 When localtunnel is installed globally, just use the `lt` command to start the tunnel.
 
 ```
-Mac: ./gcrok --port <port_num> --host https://giantiot.com 
-e.g. ./gcrok --port 1880 --host https://giantiot.com
+Mac: ./gcrok --port <port_num> --subdomain <your_sub_domain>
+e.g. ./gcrok --port 1880 --subdomain your_sub_domain
 Windows: ./gcrok-windows ...
 Linux: ./gcrok-linux ....
 ```
