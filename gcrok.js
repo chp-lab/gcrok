@@ -3,29 +3,58 @@
 
 // const openurl = require('openurl');
 // /Users/chatpethkenanan/INET/ebike/gcrok/node_modules/openurl/openurl.js
-require('localenv');
 const { createRequire } = require('node:module');
 const sub_dir = process.env.GCROK_SUB_DIR ? process.env.GCROK_SUB_DIR : '';
 const this_dir = __dirname + sub_dir;
-require = createRequire(__filename);
-dir_require = createRequire(__dirname);
+var localenv = null;
+var openurl = null;
+var yargs = null;
+var localtunnel = null;
+var version = null;
 
-// console.log('sea_lib dir:', this_dir);
-const openurl = dir_require(this_dir + '/openurl');
-const yargs = dir_require(this_dir + '/yargs');
-// const yargs = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/node_modules/yargs');
+console.debug("ARCH is", process.env.ARCH_BUILD);
+if(process.env.ARCH_BUILD == 'MAC') {
+  // mac only
+  require = createRequire(__filename);
+  dir_require = createRequire(__dirname);
 
-const localtunnel = dir_require(this_dir + '/localtunnel');
-const { version } = dir_require(this_dir + '/package');
+  // shared libs
+  localenv = dir_require(this_dir + '/localenv');
+  openurl = dir_require(this_dir + '/openurl');
+  yargs = dir_require(this_dir + '/yargs');
+  localtunnel = dir_require(this_dir + '/localtunnel');
+  const { this_version } = dir_require(this_dir + '/package');
+  version = this_version;
+
+} else if(process.env.ARCH_BUILD == 'LINUX') {
+  // mac only
+  require = createRequire(__filename);
+  dir_require = createRequire(__dirname);
+
+  // shared libs
+  localenv = dir_require(this_dir + '/localenv');
+  openurl = dir_require(this_dir + '/openurl');
+  yargs = dir_require(this_dir + '/yargs');
+  localtunnel = dir_require(this_dir + '/localtunnel');
+  const { this_version } = dir_require(this_dir + '/package');
+  version = this_version;
+
+} else if(process.env.ARCH_BUILD == 'WINDOWS') {
 // const axios = require('axios');
 // const gcrok_test = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/gcrok_test.js');
 // gcrok_test();
 
-// const openurl = require('openurl');
-// const yargs = require('yargs');
-
-// const localtunnel = require('./localtunnel');
-// const { version } = require('./package');
+  openurl = require('openurl');
+  yargs = require('yargs');
+  localtunnel = require('./localtunnel');
+  const { this_version } = require('./package');
+  version = this_version;
+} else {
+  console.log(`Please define ARCH_BUILD='Your build/run environment'. e.g. ARCH_BUILD='MAC' in your environment variable
+Support ARCH_BUILD are MAC, LINUX, WINDOWS.
+  `);
+  return;
+}
 
 const { argv } = yargs
   .usage(`Usage: node ./bin/gcrok.js --port [num] <options> 
