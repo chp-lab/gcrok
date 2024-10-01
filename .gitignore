@@ -1,5 +1,6 @@
 /node_modules
 ./dist
+gcrok
 gcrok-windows.exe
 gcrok.rar
 index.html
