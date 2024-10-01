@@ -11,9 +11,10 @@ var openurl = null;
 var yargs = null;
 var localtunnel = null;
 var version = null;
+var platform = process.platform;
 
-console.debug("ARCH is", process.env.ARCH_BUILD);
-if(process.env.ARCH_BUILD == 'MAC') {
+console.debug("platform is", platform);
+if(platform == 'darwin') {
   // mac only
   require = createRequire(__filename);
   dir_require = createRequire(__dirname);
@@ -26,7 +27,7 @@ if(process.env.ARCH_BUILD == 'MAC') {
   const { this_version } = dir_require(this_dir + '/package');
   version = this_version;
 
-} else if(process.env.ARCH_BUILD == 'LINUX') {
+} else if(platform == 'LINUX') {
   // mac only
   require = createRequire(__filename);
   dir_require = createRequire(__dirname);
@@ -50,9 +51,7 @@ if(process.env.ARCH_BUILD == 'MAC') {
   const { this_version } = require('./package');
   version = this_version;
 } else {
-  console.log(`Please define ARCH_BUILD='Your build/run environment'. e.g. ARCH_BUILD='MAC' in your environment variable
-Support ARCH_BUILD are MAC, LINUX, WINDOWS.
-  `);
+  console.log(`Please check your OS version are macOS (darwain), linux or windows (win32)`);
   return;
 }
 
