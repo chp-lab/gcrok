@@ -3,10 +3,12 @@
 
 // const openurl = require('openurl');
 // /Users/chatpethkenanan/INET/ebike/gcrok/node_modules/openurl/openurl.js
-const { createRequire } = require('node:module');
-const sub_dir = process.env.GCROK_SUB_DIR ? process.env.GCROK_SUB_DIR : '';
+const { createRequire } = require("node:module");
+const sub_dir = process.env.GCROK_SUB_DIR ? process.env.GCROK_SUB_DIR : "";
 const this_dir = __dirname + sub_dir;
 const axios = require('axios');
+
+const platform = process.platform;
 
 function loadModules(dir) {
   const dir_require = createRequire(dir);
@@ -19,9 +21,9 @@ function loadModules(dir) {
   };
 }
 
-if (process.env.ARCH_BUILD === 'MAC' || process.env.ARCH_BUILD === 'LINUX') {
+if (platform === 'darwin' || platform === 'linux') {
   ({ localenv, openurl, yargs, localtunnel, version } = loadModules(this_dir));
-} else if (process.env.ARCH_BUILD === 'WINDOWS') {
+} else if (platform === 'win32') {
   openurl = require('openurl');
   yargs = require('yargs');
   localtunnel = require('./localtunnel');
@@ -32,8 +34,10 @@ if (process.env.ARCH_BUILD === 'MAC' || process.env.ARCH_BUILD === 'LINUX') {
 }
 
 const { argv } = yargs
-  .usage(`Usage: node ./bin/gcrok.js --port [num] <options> 
-  e.g. node ./bin/gcrok.js --port <num> --host https://giantiot.com  --subdomain <username> `)
+  .usage(
+    `Usage: node ./bin/gcrok.js --port [num] <options> 
+  e.g. node ./bin/gcrok.js --port <num> --host https://giantiot.com  --subdomain <username> `
+  )
   .env(true)
   .options({
     'p': { alias: 'port', describe: 'Internal HTTP server port', demandOption: true },
@@ -48,16 +52,16 @@ const { argv } = yargs
     'o': { alias: 'open', describe: 'Opens the tunnel URL in your browser' },
     'print-requests': { describe: 'Print basic request info', type: 'boolean' }
   })
-  .require('port')
-  .boolean('local-https')
-  .boolean('allow-invalid-cert')
-  .boolean('print-requests')
-  .help('help', 'Show this help and exit')
+  .require("port")
+  .boolean("local-https")
+  .boolean("allow-invalid-cert")
+  .boolean("print-requests")
+  .help("help", "Show this help and exit")
   .version(version);
 
-if (typeof argv.port !== 'number') {
+if (typeof argv.port !== "number") {
   yargs.showHelp();
-  console.error('\nInvalid argument: `port` must be a number');
+  console.error("\nInvalid argument: `port` must be a number");
   process.exit(1);
 }
 
@@ -77,9 +81,9 @@ if (typeof argv.port !== 'number') {
     process.exit(1);
   });
 
-  tunnel.on('error', err => {
-    let tag = "tunnel_err"
-    console.debug(tag, err.message)
+  tunnel.on("error", (err) => {
+    let tag = "tunnel_err";
+    console.debug(tag, err.message);
     throw err;
   });
 
@@ -104,7 +108,7 @@ if (typeof argv.port !== 'number') {
   
   // let nIntervId;
   // let this_url = tunnel.url;
-  console.log('your url is: %s', tunnel.url);
+  console.log("your url is: %s", tunnel.url);
   // if (!nIntervId) {
   //   nIntervId = setInterval(keepAlive, 15000, this_url);
   // }
@@ -115,15 +119,15 @@ if (typeof argv.port !== 'number') {
    * @see https://github.com/localtunnel/localtunnel/pull/319#discussion_r319846289
    */
   if (tunnel.cachedUrl) {
-    console.log('your cachedUrl is: %s', tunnel.cachedUrl);
+    console.log("your cachedUrl is: %s", tunnel.cachedUrl);
   }
 
   if (argv.open) {
     openurl.open(tunnel.url);
   }
 
-  if (argv['print-requests']) {
-    tunnel.on('request', info => {
+  if (argv["print-requests"]) {
+    tunnel.on("request", (info) => {
       console.log(new Date().toString(), info.method, info.path);
     });
   }
