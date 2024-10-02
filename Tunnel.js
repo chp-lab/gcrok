@@ -60,7 +60,7 @@ module.exports = class Tunnel extends EventEmitter {
     const uri = baseUri + (assignedDomain || '?new');
     (function getUrl() {
       axios.post(baseUri + 'connect_client', {
-        user: { email: 'teerachot@gmail.com', name: 'teerachot', 'userKey': 'cwdfwr1143rq' },
+        user: {'userKey': process.env.TOKEN },
         sub_domain: (assignedDomain || '?new')
       }).then(function (res) {
         const body = res.data;
@@ -71,11 +71,7 @@ module.exports = class Tunnel extends EventEmitter {
           );
           return cb(err);
         } else {
-          if (res.data.message === 'already exist') {
-            // const err = new Error(
-            //   (body && body.data.message) || 'already exist'
-            // );
-            // return cb('err');
+          if (res.data.result === false) {
             return
           }
         }
