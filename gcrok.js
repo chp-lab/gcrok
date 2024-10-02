@@ -43,6 +43,7 @@ const { argv } = yargs
     'p': { alias: 'port', describe: 'Internal HTTP server port', demandOption: true },
     'h': { alias: 'host', describe: 'Upstream server', default: 'https://giantiot.com' },
     's': { alias: 'subdomain', describe: 'Request this subdomain' },
+    'auth-token': { describe: 'Authorization token for the tunnel' },
     'l': { alias: 'local-host', describe: 'Tunnel traffic to this host instead of localhost' },
     'local-https': { describe: 'Tunnel traffic to a local HTTPS server', type: 'boolean' },
     'local-cert': { describe: 'Path to certificate PEM file for local HTTPS server' },
@@ -75,6 +76,7 @@ if (typeof argv.port !== "number") {
     local_cert: argv.localCert,
     local_key: argv.localKey,
     local_ca: argv.localCa,
+    auth_token: argv['auth-token'],
     allow_invalid_cert: argv.allowInvalidCert,
   }).catch(err => {
     console.error('Error creating tunnel:', err.message);

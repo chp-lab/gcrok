@@ -23,7 +23,7 @@ module.exports = class Tunnel extends EventEmitter {
     /* eslint-disable camelcase */
     const { id, ip, port, url, cached_url, max_conn_count } = body;
     const { host, port: local_port, local_host } = this.opts;
-    const { local_https, local_cert, local_key, local_ca, allow_invalid_cert } = this.opts;
+    const { local_https, local_cert, local_key, local_ca, allow_invalid_cert, auth_token } = this.opts;
     return {
       name: id,
       url,
@@ -38,6 +38,7 @@ module.exports = class Tunnel extends EventEmitter {
       local_cert,
       local_key,
       local_ca,
+      auth_token,
       allow_invalid_cert,
     };
     /* eslint-enable camelcase */
@@ -56,11 +57,15 @@ module.exports = class Tunnel extends EventEmitter {
     const baseUri = `${opt.host}/`;
     // no subdomain at first, maybe use requested domain
     const assignedDomain = opt.subdomain;
+    const authToken = opt.auth_token
+    console.log("auth-----token : ",authToken);
+    
     // where to quest
     const uri = baseUri + (assignedDomain || '?new');
     (function getUrl() {
       axios.post(baseUri + 'connect_client', {
-        user: { email: 'teerachot@gmail.com', name: 'teerachot', 'userKey': 'cwdfwr1143rq' },
+        // user: { email: 'teerachot@gmail.com', name: 'teerachot', 'userKey': 'cwdfwr1143rq' },
+        user: { email: 'teerachot@gmail.com', name: 'teerachot', auth_token: authToken },
         sub_domain: (assignedDomain || '?new')
       }).then(function (res) {
         const body = res.data;
