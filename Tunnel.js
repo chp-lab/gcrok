@@ -5,6 +5,7 @@ const { parse } = require('url');
 const { EventEmitter } = require('events');
 const axios = require('axios');
 const debug = require('debug')('localtunnel:client');
+const { setEnvValue, getEnvValue } = require('./set_env')
 
 const TunnelCluster = require('./TunnelCluster');
 
@@ -58,14 +59,16 @@ module.exports = class Tunnel extends EventEmitter {
     // no subdomain at first, maybe use requested domain
     const assignedDomain = opt.subdomain;
     const authToken = opt.auth_token
-    console.log("auth-----token : ",authToken);
+
+    setEnvValue('TOKEN', authToken)
+    console.log("Gen token : ",getEnvValue('TOKEN'));
+    // console.log(process.env.TOKEN);
     
     // where to quest
     const uri = baseUri + (assignedDomain || '?new');
     (function getUrl() {
       axios.post(baseUri + 'connect_client', {
-        // user: { email: 'teerachot@gmail.com', name: 'teerachot', 'userKey': 'cwdfwr1143rq' },
-        user: { email: 'teerachot@gmail.com', name: 'teerachot', auth_token: authToken },
+        user: {'userKey': process.env.TOKEN },
         sub_domain: (assignedDomain || '?new')
       }).then(function (res) {
         const body = res.data;
@@ -76,11 +79,7 @@ module.exports = class Tunnel extends EventEmitter {
           );
           return cb(err);
         } else {
-          if (res.data.message === 'already exist') {
-            // const err = new Error(
-            //   (body && body.data.message) || 'already exist'
-            // );
-            // return cb('err');
+          if (res.data.result === false) {
             return
           }
         }
