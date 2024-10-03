@@ -43,7 +43,7 @@ module.exports = class TunnelCluster extends EventEmitter {
     });
 
     remote.setKeepAlive(true);
-    remote.setTimeout(15000);
+    remote.setTimeout(60000);
 
     remote.on('error', err => {
       debug('got remote connection error', err.message);
@@ -93,7 +93,7 @@ module.exports = class TunnelCluster extends EventEmitter {
         : net.connect({ host: localHost, port: localPort, keepAlive: false});
 
       // local.setKeepAlive(true);
-      local.setTimeout(15000);
+      local.setTimeout(60000);
       const remoteClose = () => {
         debug('remote close');
         this.emit('dead');
