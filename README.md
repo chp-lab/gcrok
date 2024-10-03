@@ -19,7 +19,8 @@ Or edit .env file then
 $ node ./gcrok.js
 Note: subdomain cannot contain special character (~, _. ! @ etc.) Dash - is allow
 
-Or Third Options (More Reliable) must edit .env to matches with your setup!
+Or Third Option (More Reliable) This gcrok pm2 will restart always and prevent gcrok down; 
+provide non-stop tunnels for your services!. This must edit .env to matches with your setup.
 (sudo) $ npm install pm2 -g
 $ pm2 start gcrok-pm2.json
 Done!
