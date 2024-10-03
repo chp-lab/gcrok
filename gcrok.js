@@ -28,7 +28,7 @@ if (platform == "darwin") {
   version = this_version;
 
 } else if(platform == 'linux') {
-  // mac only
+  // linux only
   require = createRequire(__filename);
   dir_require = createRequire(__dirname);
 
