@@ -7,7 +7,7 @@ Great for working with browser testing tools like browserling or external api ca
 ## Quickstart
 
 ```
-git clone https://github.com/chp-lab/crok.git
+git clone https://github.com/chp-lab/gcrok.git
 First Option (via bash, git bash):
 $ npm run start-gcrok.sh
 Ready to access your services!!
