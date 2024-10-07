@@ -14,31 +14,20 @@ var version = null;
 var platform = process.platform;
 
 console.debug("platform is", platform);
-if (platform == "darwin") {
-  // mac only
-  require = createRequire(__filename);
-  dir_require = createRequire(__dirname);
 
-  // shared libs
-  localenv = dir_require(this_dir + "/localenv");
-  openurl = dir_require(this_dir + "/openurl");
-  yargs = dir_require(this_dir + "/yargs");
-  localtunnel = dir_require(this_dir + "/localtunnel");
-  const { this_version } = dir_require(this_dir + "/package");
-  version = this_version;
+function loadModules(dir) {
+  const dir_require = createRequire(dir);
+  return {
+    localenv : require('localenv'),
+    openurl: require('openurl'),
+    yargs: require('yargs'),
+    localtunnel: dir_require(dir + '/localtunnel'),
+    version: dir_require(dir + '/package').this_version,
+  };
+}
 
-} else if(platform == 'linux') {
-  // linux only
-  require = createRequire(__filename);
-  dir_require = createRequire(__dirname);
-
-  // shared libs
-  localenv = dir_require(this_dir + "/localenv");
-  openurl = dir_require(this_dir + "/openurl");
-  yargs = dir_require(this_dir + "/yargs");
-  localtunnel = dir_require(this_dir + "/localtunnel");
-  const { this_version } = dir_require(this_dir + "/package");
-  version = this_version;
+if (platform === 'darwin' || platform === 'linux') {
+  ({ localenv, openurl, yargs, localtunnel, version } = loadModules(this_dir));
 } else if (platform == "win32") {
   // const axios = require('axios');
   // const gcrok_test = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/gcrok_test.js');
