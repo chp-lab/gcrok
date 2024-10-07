@@ -7,15 +7,36 @@ Great for working with browser testing tools like browserling or external api ca
 ## Quickstart
 
 ```
-git clone https://github.com/chp-lab/crok.git
+git clone https://github.com/chp-lab/gcrok.git
 First Option (via bash, git bash):
-npm run start-gcrok.sh
+$ npm run start-gcrok.sh
 Ready to access your services!!
 
 Or Secound Option (More flexibilities)
-node ./gcrok.js --port <service_port> --subdomain <your_sub_domain>
-node ./gcrok.js --port 3000 --subdomain my-sub-domain
+$ node ./gcrok.js --port <service_port> --subdomain <your_sub_domain>
+$ node ./gcrok.js --port 3000 --subdomain my-sub-domain
+Or edit .env file then
+$ node ./gcrok.js
 Note: subdomain cannot contain special character (~, _. ! @ etc.) Dash - is allow
+
+Or Third Option (More Reliable) This gcrok pm2 will restart always and prevent gcrok down; 
+provide non-stop tunnels for your services!. This must edit .env to matches with your setup.
+(sudo) $ npm install pm2 -g
+$ pm2 start gcrok-pm2.json
+Done!
+======
+Optionals:
+$ pm2 startup 
+->  auto start on boot
+
+$ pm2 save    
+->  save current state of pm2        
+
+$ pm2 status  
+-> list pm2 services
+
+$ pm2 logs gcrok  
+-> view pm2 logs of gcrok services
 ```
 
 ## Installation
@@ -26,13 +47,23 @@ Note: subdomain cannot contain special character (~, _. ! @ etc.) Dash - is allo
 Mac: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/macOS/mac.zip
 Windows: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/windows/gcrok.rar
 Linux: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/linux/gcrok-linux.zip
+Download via wget: 
+$ wget https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/macOS/mac.zip
 ```
 
 ```
-Mac: ./gcrok --port <service_port> --subdomain <your_sub_domain>
-e.g. ./gcrok --port 3000 --subdomain my-sub-domain
-Windows: ./gcrok-windows --port 3000 --subdomain my-sub-domain
-Linux: ./gcrok-linux --port 3000 --subdomain my-sub-domain
+Then edit .env file to your setup
+PORT=<service port number>
+SUBDOMAIN=<your sub-domain>
+TOKEN=<your gcrok token>
+Then start gcrok with
+$ ./gcrok
+
+You can start gcrok binary via specific options instead of .env via:
+Mac:    $ ./gcrok --port <service_port> --subdomain <your_sub_domain>
+e.g.    $ ./gcrok --port 3000 --subdomain my-sub-domain
+Windows:$ ./gcrok-windows --port 3000 --subdomain my-sub-domain
+Linux:  $ ./gcrok-linux --port 3000 --subdomain my-sub-domain
 ```
 
 ### Arguments
@@ -45,7 +76,7 @@ Below are some common arguments. See `./gcrok --help` for additional arguments
 You may also specify arguments via env variables. E.x.
 
 ```
-PORT=3000 ./gcrok ...
+$ PORT=3000 ./gcrok ...
 ```
 
 ## API

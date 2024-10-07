@@ -1,0 +1,6 @@
+[
+    {
+            "script"    : "node ./gcrok.js",
+            "name"      : "gcrok"
+    }
+]
