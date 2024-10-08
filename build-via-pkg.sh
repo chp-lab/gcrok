@@ -1,2 +1,2 @@
 #!/bin/bash
-pkg gcrok.js --targets node16-macos-x64
+pkg gcrok.js --targets node16-linux
