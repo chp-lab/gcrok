@@ -60,7 +60,7 @@ module.exports = class Tunnel extends EventEmitter {
     const uri = baseUri + (assignedDomain || '?new');
     (function getUrl() {
       axios.post(baseUri + 'connect_client', {
-        user: {'userKey': process.env.TOKEN },
+        user: {userKey: opt.auth_token, port_local:opt.port },
         sub_domain: (assignedDomain || '?new')
       }).then(function (res) {
         const body = res.data;
