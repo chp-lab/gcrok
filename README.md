@@ -53,8 +53,8 @@ $ pm2 logs gcrok
 
 ```
 Mac: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/macOS/mac.zip
-Windows: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/windows/gcrok.rar
-Linux: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/linux/gcrok-linux.zip
+Windows: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/windows/windows.zip
+Linux: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/linux/linux.zip
 Download via wget: 
 $ wget https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/macOS/mac.zip
 ```
