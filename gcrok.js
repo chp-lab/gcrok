@@ -4,6 +4,8 @@
 // const openurl = require('openurl');
 // /Users/chatpethkenanan/INET/ebike/gcrok/node_modules/openurl/openurl.js
 const { createRequire } = require("node:module");
+const setEnvironment = require("./config/setEnvironment")
+
 const sub_dir = process.env.GCROK_SUB_DIR ? process.env.GCROK_SUB_DIR : "";
 const this_dir = __dirname + sub_dir;
 var localenv = null;
@@ -14,19 +16,20 @@ var version = null;
 var platform = process.platform;
 
 console.debug("platform is", platform);
+const configYML = new setEnvironment(platform)
 
 function loadModules(dir) {
   const dir_require = createRequire(dir);
   return {
-    localenv : require('localenv'),
-    openurl: require('openurl'),
-    yargs: require('yargs'),
-    localtunnel: dir_require(dir + '/localtunnel'),
-    version: dir_require(dir + '/package').this_version,
+    localenv: require("localenv"),
+    openurl: require("openurl"),
+    yargs: require("yargs"),
+    localtunnel: dir_require(dir + "/localtunnel"),
+    version: dir_require(dir + "/package").this_version,
   };
 }
 
-if (platform === 'darwin' || platform === 'linux') {
+if (platform === "darwin" || platform === "linux") {
   ({ localenv, openurl, yargs, localtunnel, version } = loadModules(this_dir));
 } else if (platform == "win32") {
   // const axios = require('axios');
@@ -34,7 +37,8 @@ if (platform === 'darwin' || platform === 'linux') {
   // gcrok_test();
 
   dir_require = createRequire(__dirname);
-  localenv = dir_require(this_dir + "/localenv");
+  // localenv = dir_require(this_dir + "/localenv");
+  require('localenv');
   openurl = require("openurl");
   yargs = require("yargs");
   localtunnel = require("./localtunnel");
@@ -94,12 +98,43 @@ const { argv } = yargs
   .option("print-requests", {
     describe: "Print basic request info",
   })
-  .require("port")
+  .options("add-authtoken", {
+    // alias: "a",
+    describe: "Add an authtoken to gcrok.yml",
+  })
+  .options("show-authtoken", {
+    // alias: "a",
+    describe: "show authtoken to gcrok.yml",
+  })
+  // .require("port")
   .boolean("local-https")
   .boolean("allow-invalid-cert")
   .boolean("print-requests")
   .help("help", "Show this help and exit")
   .version(version);
+
+if (typeof argv.addAuthtoken == "string") {
+  configYML.setValueENV("authtoken", argv.addAuthtoken)
+  process.exit(1);
+}else{
+  if(typeof argv.addAuthtoken == true){
+    console.debug("Missing value required: add-authtoken")
+    process.exit(1);
+  }
+}
+
+const getValueYml = configYML.getValueENV()
+
+if (argv.showAuthtoken) {
+  console.log("Contents of gcrok.yml:", getValueYml.agent.authtoken);
+  process.exit(1);
+}
+
+if(getValueYml == null){
+  yargs.showHelp();
+  console.error("\nPlease provide arguments: `--add-authtoken`");
+  process.exit(1);
+}
 
 if (typeof argv.port !== "number") {
   yargs.showHelp();
@@ -118,6 +153,7 @@ if (typeof argv.port !== "number") {
     local_key: argv.localKey,
     local_ca: argv.localCa,
     allow_invalid_cert: argv.allowInvalidCert,
+    auth_token: getValueYml.agent.authtoken
   }).catch((err) => {
     throw err;
   });
