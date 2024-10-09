@@ -7,12 +7,19 @@ Great for working with browser testing tools like browserling or external api ca
 ## Quickstart
 
 ```
-git clone https://github.com/chp-lab/gcrok.git
-First Option (via bash, git bash):
+$ git clone https://github.com/chp-lab/gcrok.git
+Then save gcrok token only first time!
+$ node ./gcrok.js --add-authtoken <your_gcrok_token>
+e.g. 
+$ node ./gcrok.js --add-authtoken abcdefghijklmnopqrstuvwxyz
+First Option (via bash, git bash)  This must edit .env to matches with your setup:
 $ npm run start-gcrok.sh
 Ready to access your services!!
 
 Or Secound Option (More flexibilities)
+Save gcrok token only first time!
+$ node ./gcrok.js --add-authtoken <your_gcrok_token>
+Then start your gcrok tunnel
 $ node ./gcrok.js --port <service_port> --subdomain <your_sub_domain>
 $ node ./gcrok.js --port 3000 --subdomain my-sub-domain
 Or edit .env file then
@@ -21,6 +28,7 @@ Note: subdomain cannot contain special character (~, _. ! @ etc.) Dash - is allo
 
 Or Third Option (More Reliable) This gcrok pm2 will restart always and prevent gcrok down; 
 provide non-stop tunnels for your services!. This must edit .env to matches with your setup.
+$ node ./gcrok.js --add-authtoken <your_gcrok_token>
 (sudo) $ npm install pm2 -g
 $ pm2 start gcrok-pm2.json
 Done!
@@ -45,17 +53,19 @@ $ pm2 logs gcrok
 
 ```
 Mac: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/macOS/mac.zip
-Windows: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/windows/gcrok.rar
-Linux: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/linux/gcrok-linux.zip
+Windows: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/windows/windows.zip
+Linux: https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/linux/linux.zip
 Download via wget: 
 $ wget https://chp-s3.s3.ap-south-1.amazonaws.com/gcrok_releases/macOS/mac.zip
 ```
 
 ```
-Then edit .env file to your setup
+Edit .env file to your setup
 PORT=<service port number>
 SUBDOMAIN=<your sub-domain>
-TOKEN=<your gcrok token>
+
+Save gcrok token only first time!
+$ node ./gcrok.js --add-authtoken <your_gcrok_token>
 Then start gcrok with
 $ ./gcrok
 
@@ -64,6 +74,20 @@ Mac:    $ ./gcrok --port <service_port> --subdomain <your_sub_domain>
 e.g.    $ ./gcrok --port 3000 --subdomain my-sub-domain
 Windows:$ ./gcrok-windows --port 3000 --subdomain my-sub-domain
 Linux:  $ ./gcrok-linux --port 3000 --subdomain my-sub-domain
+
+It's also support global running by set gcrok path to your environment variable.
+MAC and Linux: 
+$ export PATH="$PATH:<your_gcrok_directory>"
+e.g. export PATH="$PATH:$HOME/gcrok"
+You can permanently export PATH by edit ~/.bashrc file by:
+$ nano ~/.bashrc
+Scroll to the last line and add
+export PATH="$PATH:<your_gcrok_directory>"
+e.g. export PATH="$PATH:$HOME/gcrok"
+$ source ~/.bashrc
+##### Complete ######
+
+Windows: Add gcrok directory to environtment varible PATH. Re-open command windows.
 ```
 
 ### Arguments

@@ -26,7 +26,7 @@ function loadModules(dir) {
     openurl: require("openurl"),
     yargs: require("yargs"),
     localtunnel: dir_require(dir + "/localtunnel"),
-    version: dir_require(dir + "/package").this_version,
+    version: dir_require(dir + "/package").version,
   };
 }
 
