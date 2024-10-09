@@ -49,7 +49,7 @@ if (platform === "darwin" || platform === "linux") {
   console.log(
     `Please check your OS version are macOS (darwain), linux or windows (win32)`
   );
-  return;
+  // return;
 }
 
 const { argv } = yargs

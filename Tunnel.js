@@ -8,6 +8,11 @@ const debug = require('debug')('localtunnel:client');
 
 const TunnelCluster = require('./TunnelCluster');
 
+const getDisk = require("./system/disk");
+// const { getSwap } = require("./system/swap.js");
+const getMemory = require("./system/memory");
+const os = require("os");
+
 module.exports = class Tunnel extends EventEmitter {
   constructor(opts = {}) {
     super(opts);
@@ -77,28 +82,40 @@ module.exports = class Tunnel extends EventEmitter {
         }
         cb(null, getInfo(body));
       })
-        .catch(function (err) {
-          debug(`tunnel server offline: ${err.message}, retry 1s`);
-          return setTimeout(getUrl, 1000);
-        })
+      .catch(function (err) {
+        debug(`tunnel server offline: ${err.message}, retry 1s`);
+        return setTimeout(getUrl, 1000);
+      })
+    })();
 
-      // axios
-      //   .get(uri, params)
-      //   .then(res => {
-      //     const body = res.data;
-      //     debug('got tunnel information', res.data);
-      //     if (res.status !== 200) {
-      //       const err = new Error(
-      //         (body && body.message) || 'localtunnel server returned an error, please try again'
-      //       );
-      //       return cb(err);
-      //     }
-      //     cb(null, getInfo(body));
-      //   })
-      //   .catch(err => {
-      //     debug(`tunnel server offline: ${err.message}, retry 1s`);
-      //     return setTimeout(getUrl, 1000);
-      //   });
+    (async function creatSystem() {
+      const memoryUsage = process.memoryUsage();
+      const disk = await getDisk();
+      const mem = getMemory();
+      const cpus = os.cpus();
+      const data = {
+        subdomain : opt.subdomain,
+        port: opt.port,
+        cpu: cpus,
+        cpu_num_core: cpus.length,
+        memory: {
+          memtotal: mem[0],
+          mamfree: mem[1],
+          mamuse: parseFloat((mem[0] - mem[1]).toFixed(2)),
+        },
+        disk: disk,
+      };
+      
+      axios.post(baseUri + 'api/v1/system/info', {
+        data
+      }).then(function (res) {
+        debug(`created system success.`)
+        return setTimeout(creatSystem, 5000);
+      })
+      .catch(function (err) {
+        debug(`tunnel server offline: ${err.message}, retry 1s`);
+        return setTimeout(creatSystem, 1000);
+      })
     })();
   }
 
