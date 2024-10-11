@@ -5,6 +5,7 @@
 // /Users/chatpethkenanan/INET/ebike/gcrok/node_modules/openurl/openurl.js
 const { createRequire } = require("node:module");
 const setEnvironment = require("./config/setEnvironment")
+require('localenv')
 
 const sub_dir = process.env.GCROK_SUB_DIR ? process.env.GCROK_SUB_DIR : "";
 const this_dir = __dirname + sub_dir;
@@ -48,7 +49,7 @@ if (platform === "darwin" || platform === "linux") {
   console.log(
     `Please check your OS version are macOS (darwain), linux or windows (win32)`
   );
-  return;
+  // return;
 }
 
 const { argv } = yargs
@@ -115,7 +116,7 @@ const { argv } = yargs
 
 if (typeof argv.addAuthtoken == "string") {
   configYML.setValueENV("authtoken", argv.addAuthtoken)
-  process.exit(1);
+  // process.exit(1);
 }else{
   if(typeof argv.addAuthtoken == true){
     console.debug("Missing value required: add-authtoken")
