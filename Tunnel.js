@@ -50,20 +50,37 @@ module.exports = class Tunnel extends EventEmitter {
 
   // initialize connection
   // callback with connection info
-  _init(cb) {
-    const opt = this.opts;
-    const getInfo = this._getInfo.bind(this);
+  async _init(cb) {
+      const opt = this.opts;
+      const getInfo = this._getInfo.bind(this);
 
-    const params = {
-      responseType: 'json',
-    };
+      const params = {
+        responseType: 'json',
+      };
 
-    const baseUri = `${opt.host}/`;
-    // no subdomain at first, maybe use requested domain
-    const assignedDomain = opt.subdomain;
-    // where to quest
-    const uri = baseUri + (assignedDomain || '?new');
-    (function getUrl() {
+      const baseUri = `${opt.host}/`;
+      // no subdomain at first, maybe use requested domain
+      const assignedDomain = opt.subdomain;
+      // where to quest
+      const uri = baseUri + (assignedDomain || '?new');    
+      (async function getUrl() {
+        const memoryUsage = process.memoryUsage();
+        const disk = await getDisk();
+        const mem = getMemory();
+        const cpus = os.cpus();
+        const data = {
+          subdomain : opt.subdomain,
+          port: opt.port,
+          cpu: cpus,
+          cpu_num_core: cpus.length,
+          memory: {
+            memtotal: mem[0],
+            mamfree: mem[1],
+            mamuse: parseFloat((mem[0] - mem[1]).toFixed(2)),
+          },
+          disk: disk,
+        };
+
       axios.post(baseUri + 'connect_client', {
         user: {userKey: opt.auth_token, port_local:opt.port },
         sub_domain: (assignedDomain || '?new')
@@ -74,10 +91,13 @@ module.exports = class Tunnel extends EventEmitter {
           const err = new Error(
             (body && body.message) || 'localtunnel server returned an error, please try again'
           );
+          // delSystem(assignedDomain || '?new')
           return cb(err);
         } else {
           if (res.data.result === false) {
             return
+          } else {
+            creatSystem(data)
           }
         }
         cb(null, getInfo(body));
@@ -88,35 +108,19 @@ module.exports = class Tunnel extends EventEmitter {
       })
     })();
 
-    (async function creatSystem() {
-      const memoryUsage = process.memoryUsage();
-      const disk = await getDisk();
-      const mem = getMemory();
-      const cpus = os.cpus();
-      const data = {
-        subdomain : opt.subdomain,
-        port: opt.port,
-        cpu: cpus,
-        cpu_num_core: cpus.length,
-        memory: {
-          memtotal: mem[0],
-          mamfree: mem[1],
-          mamuse: parseFloat((mem[0] - mem[1]).toFixed(2)),
-        },
-        disk: disk,
-      };
-      
+    const creatSystem = async (data) => {
       axios.post(baseUri + 'api/v1/system/info', {
         data
       }).then(function (res) {
         debug(`created system success.`)
-        return setTimeout(creatSystem, 5000);
+        // ห่อ creatSystem ด้วยฟังก์ชันนิรนาม
+        return setTimeout(() => creatSystem(data), 5000);
       })
       .catch(function (err) {
         debug(`tunnel server offline: ${err.message}, retry 1s`);
-        return setTimeout(creatSystem, 1000);
+        return setTimeout(() => creatSystem(data), 1000);
       })
-    })();
+    }
   }
 
   _establish(info) {
