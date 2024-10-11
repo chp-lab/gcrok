@@ -8,6 +8,11 @@ const debug = require('debug')('localtunnel:client');
 
 const TunnelCluster = require('./TunnelCluster');
 
+const getDisk = require("./system/disk");
+// const { getSwap } = require("./system/swap.js");
+const getMemory = require("./system/memory");
+const os = require("os");
+
 module.exports = class Tunnel extends EventEmitter {
   constructor(opts = {}) {
     super(opts);
@@ -45,20 +50,37 @@ module.exports = class Tunnel extends EventEmitter {
 
   // initialize connection
   // callback with connection info
-  _init(cb) {
-    const opt = this.opts;
-    const getInfo = this._getInfo.bind(this);
+  async _init(cb) {
+      const opt = this.opts;
+      const getInfo = this._getInfo.bind(this);
 
-    const params = {
-      responseType: 'json',
-    };
+      const params = {
+        responseType: 'json',
+      };
 
-    const baseUri = `${opt.host}/`;
-    // no subdomain at first, maybe use requested domain
-    const assignedDomain = opt.subdomain;
-    // where to quest
-    const uri = baseUri + (assignedDomain || '?new');
-    (function getUrl() {
+      const baseUri = `${opt.host}/`;
+      // no subdomain at first, maybe use requested domain
+      const assignedDomain = opt.subdomain;
+      // where to quest
+      const uri = baseUri + (assignedDomain || '?new');    
+      (async function getUrl() {
+        const memoryUsage = process.memoryUsage();
+        const disk = await getDisk();
+        const mem = getMemory();
+        const cpus = os.cpus();
+        const data = {
+          subdomain : opt.subdomain,
+          port: opt.port,
+          cpu: cpus,
+          cpu_num_core: cpus.length,
+          memory: {
+            memtotal: mem[0],
+            mamfree: mem[1],
+            mamuse: parseFloat((mem[0] - mem[1]).toFixed(2)),
+          },
+          disk: disk,
+        };
+
       axios.post(baseUri + 'connect_client', {
         user: {userKey: opt.auth_token, port_local:opt.port },
         sub_domain: (assignedDomain || '?new')
@@ -69,37 +91,36 @@ module.exports = class Tunnel extends EventEmitter {
           const err = new Error(
             (body && body.message) || 'localtunnel server returned an error, please try again'
           );
+          // delSystem(assignedDomain || '?new')
           return cb(err);
         } else {
           if (res.data.result === false) {
             return
+          } else {
+            creatSystem(data)
           }
         }
         cb(null, getInfo(body));
       })
-        .catch(function (err) {
-          debug(`tunnel server offline: ${err.message}, retry 1s`);
-          return setTimeout(getUrl, 1000);
-        })
-
-      // axios
-      //   .get(uri, params)
-      //   .then(res => {
-      //     const body = res.data;
-      //     debug('got tunnel information', res.data);
-      //     if (res.status !== 200) {
-      //       const err = new Error(
-      //         (body && body.message) || 'localtunnel server returned an error, please try again'
-      //       );
-      //       return cb(err);
-      //     }
-      //     cb(null, getInfo(body));
-      //   })
-      //   .catch(err => {
-      //     debug(`tunnel server offline: ${err.message}, retry 1s`);
-      //     return setTimeout(getUrl, 1000);
-      //   });
+      .catch(function (err) {
+        debug(`tunnel server offline: ${err.message}, retry 1s`);
+        return setTimeout(getUrl, 1000);
+      })
     })();
+
+    const creatSystem = async (data) => {
+      axios.post(baseUri + 'api/v1/system/info', {
+        data
+      }).then(function (res) {
+        debug(`created system success.`)
+        // ห่อ creatSystem ด้วยฟังก์ชันนิรนาม
+        return setTimeout(() => creatSystem(data), 5000);
+      })
+      .catch(function (err) {
+        debug(`tunnel server offline: ${err.message}, retry 1s`);
+        return setTimeout(() => creatSystem(data), 1000);
+      })
+    }
   }
 
   _establish(info) {
