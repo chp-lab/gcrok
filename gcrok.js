@@ -15,6 +15,14 @@ var yargs = null;
 var localtunnel = null;
 var version = null;
 var platform = process.platform;
+const { SshTunnel } = require("ssh-tunneling");
+
+sshConfig = {
+  host: 'giantiot.com',
+  port: 22,
+  username: 'gcrok-tunnel',
+  password: '$hhP$Nxz9Rk9.q,2!>f_>]uZP:*y^;3Y'
+};
 
 console.debug("platform is", platform);
 const configYML = new setEnvironment(platform)
@@ -107,12 +115,16 @@ const { argv } = yargs
     // alias: "a",
     describe: "show authtoken to gcrok.yml",
   })
+  .options("ssh-tunnel", {
+    describe: "create ssh-tunnel only"
+  })
   // .require("port")
   .boolean("local-https")
   .boolean("allow-invalid-cert")
   .boolean("print-requests")
   .help("help", "Show this help and exit")
-  .version(version);
+  .version(version)
+  .boolean("ssh-tunnel");
 
 if (typeof argv.addAuthtoken == "string") {
   configYML.setValueENV("authtoken", argv.addAuthtoken)
@@ -141,6 +153,14 @@ if (typeof argv.port !== "number") {
   yargs.showHelp();
   console.error("\nInvalid argument: `port` must be a number");
   process.exit(1);
+}
+
+if(argv["ssh-tunnel"]) {
+  console.debug("ssh-tunnel: requested to open new ssh tunnel");
+  const client = new SshTunnel(sshConfig);
+  const forwardInfo1 = client.forwardOut('2222:localhost:22');
+  console.log(forwardInfo1);
+  return;
 }
 
 (async () => {

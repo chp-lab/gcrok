@@ -10,7 +10,7 @@
 // const client = new SshTunnel(sshConfig);
 // const forwardInfo1 = client.forwardOut('2222:localhost:22');
 // console.log(forwardInfo1)
-const { SshTunnel } = require("ssh-tunneling");
+const { SshTunnel } = require("./ssh-tunneling-gc/dist");
 
 sshConfig = {
   host: 'giantiot.com',
@@ -21,4 +21,6 @@ sshConfig = {
 
 const client = new SshTunnel(sshConfig);
 const forwardInfo1 = client.forwardOut('2222:localhost:22');
+// const remotePortForward1 = client.remotePortForward('8002:localhost:1880');
 console.log(forwardInfo1);
+// console.log(remotePortForward1);
