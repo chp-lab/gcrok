@@ -11,7 +11,7 @@ var port = 22
 var password = '$hhP$Nxz9Rk9.q,2!>f_>]uZP:*y^;3Y'
 var localAddr = 'localhost'
 var localPort = '22'
-var remotePort = '8002'
+var remotePort = process.env.SSH_PORT || '8002'
 var remoteAddr = '0.0.0.0'
 require('localenv')
 
