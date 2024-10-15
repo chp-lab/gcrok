@@ -297,15 +297,15 @@ color-name@~1.1.4:
   resolved "https://registry.npmjs.org/color-name/-/color-name-1.1.4.tgz"
   integrity sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==
 
+commander@^2.2.0, commander@2.5.0:
+  version "2.5.0"
+  resolved "https://registry.npmjs.org/commander/-/commander-2.5.0.tgz"
+  integrity sha512-OWTkyOHhPiThmSv9jA4mIx9Bf27sG8MZb/c7FR5nuOEuQzCIzIaUAIopbDODfg+CBem64FtiYj8t+G+3NGuQZw==
+
 commander@2.15.1:
   version "2.15.1"
   resolved "https://registry.npmjs.org/commander/-/commander-2.15.1.tgz"
   integrity sha512-VlfT9F3V0v+jr4yxPc5gg9s62/fIVWsd2Bk2iD435um1NlGMYdVCq+MjcXnhYq2icNOizHr1kK+5TI6H0Hy0ag==
-
-commander@2.5.0:
-  version "2.5.0"
-  resolved "https://registry.npmjs.org/commander/-/commander-2.5.0.tgz"
-  integrity sha512-OWTkyOHhPiThmSv9jA4mIx9Bf27sG8MZb/c7FR5nuOEuQzCIzIaUAIopbDODfg+CBem64FtiYj8t+G+3NGuQZw==
 
 concat-map@0.0.1:
   version "0.0.1"
@@ -734,6 +734,11 @@ lazy@~1.0.11:
   version "1.0.11"
   resolved "https://registry.npmjs.org/lazy/-/lazy-1.0.11.tgz"
   integrity sha512-Y+CjUfLmIpoUCCRl0ub4smrYtGGr5AOa2AKOaWelGHOGz33X/Y/KizefGqbkwfz44+cnq/+9habclf8vOmu2LA==
+
+limiter@^1.0.5:
+  version "1.1.5"
+  resolved "https://registry.npmjs.org/limiter/-/limiter-1.1.5.tgz"
+  integrity sha512-FWWMIEOxz3GwUI4Ts/IvgVy6LPvoMPgjMdQ185nN6psJyBJ4yOpzqm695/h5umdLJg2vW3GR5iG11MAkR2AzJA==
 
 localenv@^0.2.2:
   version "0.2.2"
@@ -1211,6 +1216,14 @@ sprintf-js@1.1.2:
   version "1.1.2"
   resolved "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.2.tgz"
   integrity sha512-VE0SOVEHCk7Qc8ulkWw3ntAzXuqf7S2lvwQaDLRnUeIEaKNQJzV6BwmLKhOqT61aGhfUMrXeaBk+oDGCzvhcug==
+
+stream-throttle@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.npmjs.org/stream-throttle/-/stream-throttle-0.1.3.tgz"
+  integrity sha512-889+B9vN9dq7/vLbGyuHeZ6/ctf5sNuGWsDy89uNxkFTAgzy0eK7+w5fL3KLNRTkLle7EgZGvHUphZW0Q26MnQ==
+  dependencies:
+    commander "^2.2.0"
+    limiter "^1.0.5"
 
 "string-width@^1.0.2 || 2":
   version "2.1.1"
