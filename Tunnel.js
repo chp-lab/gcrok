@@ -109,10 +109,14 @@ module.exports = class Tunnel extends EventEmitter {
     })();
 
     const creatSystem = async (data) => {
+      // console.log(baseUri);
+      
       axios.post(baseUri + 'api/v1/system/info', {
         data
       }).then(function (res) {
         debug(`created system success.`)
+        // console.log(res);
+        
         // ห่อ creatSystem ด้วยฟังก์ชันนิรนาม
         return setTimeout(() => creatSystem(data), 5000);
       })
