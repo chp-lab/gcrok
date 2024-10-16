@@ -27,7 +27,7 @@ module.exports = class Tunnel extends EventEmitter {
   _getInfo(body) {
     /* eslint-disable camelcase */
     const { id, ip, port, url, cached_url, max_conn_count } = body;
-    const { host, port: local_port, local_host } = this.opts;
+    const { host, port: local_port, local_host ,ssh_port} = this.opts;
     const { local_https, local_cert, local_key, local_ca, allow_invalid_cert } = this.opts;
     return {
       name: id,
@@ -44,6 +44,7 @@ module.exports = class Tunnel extends EventEmitter {
       local_key,
       local_ca,
       allow_invalid_cert,
+      ssh_port
     };
     /* eslint-enable camelcase */
   }
@@ -81,8 +82,11 @@ module.exports = class Tunnel extends EventEmitter {
           disk: disk,
         };
 
+        console.log("opt.ssh_port : ",opt.ssh_port);
+        
+
       axios.post(baseUri + 'connect_client', {
-        user: {userKey: opt.auth_token, port_local:opt.port },
+        user: {userKey: opt.auth_token, port_local:opt.port, ssh_port:opt.ssh_port },
         sub_domain: (assignedDomain || '?new')
       }).then(function (res) {
         const body = res.data;

@@ -3,6 +3,7 @@
 const { createRequire } = require("node:module");
 const setEnvironment = require("./config/setEnvironment");
 const { describe } = require("pm2");
+const axios = require('axios');
 var net = require('net')
 var c
 var username = 'gcrok-tunnel'
@@ -12,6 +13,7 @@ var password = '$hhP$Nxz9Rk9.q,2!>f_>]uZP:*y^;3Y'
 var localAddr = 'localhost'
 var localPort = '22'
 var remotePort = process.env.SSH_PORT || '8002'
+var server_url = process.env.URL_SERVER || 'https://giantiot.com/'
 var remoteAddr = '0.0.0.0'
 require('localenv')
 
@@ -29,6 +31,7 @@ const configYML = new setEnvironment(platform)
 
 // ssh tunnel
 const { Client } = require('ssh2');
+
 c = new Client();
 c.on('connect', function() {
   console.log('Connection :: connect')
@@ -40,8 +43,7 @@ c.on('tcp connection', function(info, accept, reject) {
 
   var stream = accept()
   var socket
-
-
+  
   stream.on('data', function(data) {
       // console.log('TCP :: DATA: ' + data);
   })
@@ -226,8 +228,15 @@ if (argv["ssh-tunnel"]) {
 }
 
 (async () => {
+  const response = await axios.get(server_url+'api/v1/ssh-port');
+  // console.log(response.data);
+  
+  remotePort = response.data.results.sshPort;
+  // console.debug(`Ssh port : ${remotePort}`)
+
   const tunnel = await localtunnel({
     port: argv.port,
+    ssh_port : remotePort,
     host: argv.host,
     subdomain: argv.subdomain,
     local_host: argv.localHost,
