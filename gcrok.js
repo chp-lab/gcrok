@@ -1,10 +1,20 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
-
-// const openurl = require('openurl');
-// /Users/chatpethkenanan/INET/ebike/gcrok/node_modules/openurl/openurl.js
 const { createRequire } = require("node:module");
-const setEnvironment = require("./config/setEnvironment")
+const setEnvironment = require("./config/setEnvironment");
+const { describe } = require("pm2");
+const axios = require('axios');
+var net = require('net')
+var c
+var username = 'gcrok-tunnel'
+var hostname = 'giantiot.com'
+var port = 22
+var password = '$hhP$Nxz9Rk9.q,2!>f_>]uZP:*y^;3Y'
+var localAddr = 'localhost'
+var localPort = '22'
+var remotePort = process.env.SSH_PORT || '8002'
+var server_url = process.env.URL_SERVER || 'https://giantiot.com/'
+var remoteAddr = '0.0.0.0'
 require('localenv')
 
 const sub_dir = process.env.GCROK_SUB_DIR ? process.env.GCROK_SUB_DIR : "";
@@ -18,6 +28,9 @@ var platform = process.platform;
 
 console.debug("platform is", platform);
 const configYML = new setEnvironment(platform)
+
+// SSH Client
+const { Client } = require('ssh2');
 
 function loadModules(dir) {
   const dir_require = createRequire(dir);
@@ -51,6 +64,65 @@ if (platform === "darwin" || platform === "linux") {
   );
   // return;
 }
+
+// SSH Tunnels
+c = new Client();
+c.on('connect', function() {
+  console.log('Connection :: connect')
+})
+
+c.on('tcp connection', function(info, accept, reject) {
+  console.log('TCP :: INCOMING CONNECTION: ' + 
+  require('util').inspect(info));
+
+  var stream = accept()
+  var socket
+  
+  stream.on('data', function(data) {
+      // console.log('TCP :: DATA: ' + data);
+  })
+
+  stream.on('end', function() {
+      console.log('TCP :: EOF');
+  })
+
+  stream.on('error', function(err) {
+      console.log('TCP :: ERROR: ' + err);
+  })
+
+  stream.on('close', function(had_err) {
+      console.log('TCP :: CLOSED', had_err ? 'had error' : '');
+  })
+
+  stream.pause()
+  socket = net.connect(localPort, localAddr, function () {
+  stream.pipe(socket);
+  socket.pipe(stream);
+  stream.resume();
+  })
+})
+
+c.on('ready', function() {
+  console.log('Connection :: ready')
+  c.forwardIn(remoteAddr, remotePort, function(err) {
+    if (err) { throw err }
+    console.log(`Forwarding connections from remote server on port ${remotePort} to ssh tunnels
+    To ssh to gcrok host (local computer) use 
+    $ ssh ${hostname} -p ${remotePort}`);
+  })
+})
+
+c.on('error', function(err) {
+  console.log('Connection :: error :: ', err)
+})
+
+c.on('end', function() {
+  console.log('Connection :: end')
+})
+
+c.on('close', function(had_error) {
+  console.log('Connection :: close', had_error ? 'had error' : '')
+})
 
 const { argv } = yargs
   .usage(
@@ -107,11 +179,15 @@ const { argv } = yargs
     // alias: "a",
     describe: "show authtoken to gcrok.yml",
   })
+  .options("ssh-tunnel", {
+    describe: "start ssh tunnel only",
+  })
   // .require("port")
   .boolean("local-https")
   .boolean("allow-invalid-cert")
   .boolean("print-requests")
   .help("help", "Show this help and exit")
+  .boolean("ssh-tunnel")
   .version(version);
 
 if (typeof argv.addAuthtoken == "string") {
@@ -143,9 +219,27 @@ if (typeof argv.port !== "number") {
   process.exit(1);
 }
 
+if (argv["ssh-tunnel"]) {
+  console.debug("ssh tunnel starting...");
+  var obj = {
+    host: hostname,
+    port: port,
+    username: username,
+    password: password
+  }
+  c.connect(obj);
+}
+
 (async () => {
+  const response = await axios.get(server_url+'api/v1/ssh-port');
+  // console.log(response.data);
+  
+  remotePort = response.data.results.sshPort;
+  // console.debug(`Ssh port : ${remotePort}`)
+
   const tunnel = await localtunnel({
     port: argv.port,
+    ssh_port : remotePort,
     host: argv.host,
     subdomain: argv.subdomain,
     local_host: argv.localHost,
