@@ -29,9 +29,43 @@ var platform = process.platform;
 console.debug("platform is", platform);
 const configYML = new setEnvironment(platform)
 
-// ssh tunnel
+// SSH Client
 const { Client } = require('ssh2');
 
+function loadModules(dir) {
+  const dir_require = createRequire(dir);
+  return {
+    localenv: require("localenv"),
+    openurl: require("openurl"),
+    yargs: require("yargs"),
+    localtunnel: dir_require(dir + "/localtunnel"),
+    version: dir_require(dir + "/package").version,
+  };
+}
+
+if (platform === "darwin" || platform === "linux") {
+  ({ localenv, openurl, yargs, localtunnel, version } = loadModules(this_dir));
+} else if (platform == "win32") {
+  // const axios = require('axios');
+  // const gcrok_test = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/gcrok_test.js');
+  // gcrok_test();
+
+  dir_require = createRequire(__dirname);
+  // localenv = dir_require(this_dir + "/localenv");
+  require('localenv');
+  openurl = require("openurl");
+  yargs = require("yargs");
+  localtunnel = require("./localtunnel");
+  const { this_version } = require("./package");
+  version = this_version;
+} else {
+  console.log(
+    `Please check your OS version are macOS (darwain), linux or windows (win32)`
+  );
+  // return;
+}
+
+// SSH Tunnels
 c = new Client();
 c.on('connect', function() {
   console.log('Connection :: connect')
@@ -71,8 +105,10 @@ c.on('tcp connection', function(info, accept, reject) {
 c.on('ready', function() {
   console.log('Connection :: ready')
   c.forwardIn(remoteAddr, remotePort, function(err) {
-  if (err) { throw err }
-      console.log(`Forwarding connections from remote server on port ${remotePort} to node socket!`);
+    if (err) { throw err }
+    console.log(`Forwarding connections from remote server on port ${remotePort} to ssh tunnels
+    To ssh to gcrok host (local computer) use 
+    $ ssh ${hostname} -p ${remotePort}`);
   })
 })
 
@@ -87,39 +123,6 @@ c.on('end', function() {
 c.on('close', function(had_error) {
   console.log('Connection :: close', had_error ? 'had error' : '')
 })
-
-function loadModules(dir) {
-  const dir_require = createRequire(dir);
-  return {
-    localenv: require("localenv"),
-    openurl: require("openurl"),
-    yargs: require("yargs"),
-    localtunnel: dir_require(dir + "/localtunnel"),
-    version: dir_require(dir + "/package").version,
-  };
-}
-
-if (platform === "darwin" || platform === "linux") {
-  ({ localenv, openurl, yargs, localtunnel, version } = loadModules(this_dir));
-} else if (platform == "win32") {
-  // const axios = require('axios');
-  // const gcrok_test = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/gcrok_test.js');
-  // gcrok_test();
-
-  dir_require = createRequire(__dirname);
-  // localenv = dir_require(this_dir + "/localenv");
-  require('localenv');
-  openurl = require("openurl");
-  yargs = require("yargs");
-  localtunnel = require("./localtunnel");
-  const { this_version } = require("./package");
-  version = this_version;
-} else {
-  console.log(
-    `Please check your OS version are macOS (darwain), linux or windows (win32)`
-  );
-  // return;
-}
 
 const { argv } = yargs
   .usage(
