@@ -231,11 +231,12 @@ if (argv["ssh-tunnel"]) {
 }
 
 (async () => {
-  const response = await axios.get(server_url+'api/v1/ssh-port');
-  // console.log(response.data);
-  
-  remotePort = response.data.results.sshPort;
-  // console.debug(`Ssh port : ${remotePort}`)
+  if(argv["ssh-tunnel"]) {
+    const response = await axios.get(server_url+'api/v1/ssh-port');
+    remotePort = response.data.results.sshPort;
+  } else {
+    remotePort = null
+  }
 
   const tunnel = await localtunnel({
     port: argv.port,

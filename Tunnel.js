@@ -82,9 +82,6 @@ module.exports = class Tunnel extends EventEmitter {
           disk: disk,
         };
 
-        console.log("opt.ssh_port : ",opt.ssh_port);
-        
-
       axios.post(baseUri + 'connect_client', {
         user: {userKey: opt.auth_token, port_local:opt.port, ssh_port:opt.ssh_port },
         sub_domain: (assignedDomain || '?new')
