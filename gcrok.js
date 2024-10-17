@@ -108,7 +108,7 @@ c.on('ready', function() {
     if (err) { throw err }
     console.log(`Forwarding connections from remote server on port ${remotePort} to ssh tunnels
     To ssh to gcrok host (local computer) use 
-    $ ssh ${hostname} -p ${remotePort}`);
+    $ ssh your_user_name@${hostname} -p ${remotePort}`);
   })
 })
 
