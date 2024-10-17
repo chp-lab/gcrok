@@ -115,7 +115,7 @@ module.exports = class Tunnel extends EventEmitter {
       axios.post(baseUri + 'api/v1/system/info', {
         data
       }).then(function (res) {
-        console.log(`created system success.`)
+        debug(`created system success.`)
         // console.log(res);
         
         // ห่อ creatSystem ด้วยฟังก์ชันนิรนาม
