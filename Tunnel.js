@@ -87,7 +87,7 @@ module.exports = class Tunnel extends EventEmitter {
         sub_domain: (assignedDomain || '?new')
       }).then(function (res) {
         const body = res.data;
-        debug('got tunnel information', res.data);
+        console.log('got tunnel information', res.data);
         if (res.status !== 200) {
           const err = new Error(
             (body && body.message) || 'localtunnel server returned an error, please try again'
@@ -104,7 +104,7 @@ module.exports = class Tunnel extends EventEmitter {
         cb(null, getInfo(body));
       })
       .catch(function (err) {
-        debug(`tunnel server offline: ${err.message}, retry 1s`);
+        console.log(`tunnel server offline: ${err.message}, retry 1s`);
         return setTimeout(getUrl, 1000);
       })
     })();
@@ -115,14 +115,14 @@ module.exports = class Tunnel extends EventEmitter {
       axios.post(baseUri + 'api/v1/system/info', {
         data
       }).then(function (res) {
-        debug(`created system success.`)
+        console.log(`created system success.`)
         // console.log(res);
         
         // ห่อ creatSystem ด้วยฟังก์ชันนิรนาม
         return setTimeout(() => creatSystem(data), 5000);
       })
       .catch(function (err) {
-        debug(`tunnel server offline: ${err.message}, retry 1s`);
+        console.log(`tunnel server offline: ${err.message}, retry 1s`);
         return setTimeout(() => creatSystem(data), 1000);
       })
     }
@@ -142,7 +142,7 @@ module.exports = class Tunnel extends EventEmitter {
 
     // re-emit socket error
     this.tunnelCluster.on('error', err => {
-      debug('got socket error', err.message);
+      console.log('got socket error', err.message);
       this.emit('error', err);
     });
 
