@@ -25,6 +25,7 @@ var yargs = null;
 var localtunnel = null;
 var version = null;
 var platform = process.platform;
+var os_username = require("os").userInfo().username;
 
 console.debug("platform is", platform);
 const configYML = new setEnvironment(platform)
@@ -108,7 +109,13 @@ c.on('ready', function() {
     if (err) { throw err }
     console.log(`Forwarding connections from remote server on port ${remotePort} to ssh tunnels
     To ssh to gcrok host (local computer) use 
-    $ ssh ${hostname} -p ${remotePort}`);
+    $ ssh your_user_name@${hostname} -p ${remotePort}
+    e.x.
+    $ ssh ${os_username}@${hostname} -p ${remotePort}
+    * Note: Your computer must start ssh server on port 22
+    MAC: https://support.apple.com/lt-lt/guide/mac-help/mchlp1066/mac
+    LINUX: https://www.xda-developers.com/how-to-enable-ssh-on-ubuntu/
+    WINDOWS: Under testing`);
   })
 })
 
@@ -231,11 +238,12 @@ if (argv["ssh-tunnel"]) {
 }
 
 (async () => {
-  const response = await axios.get(server_url+'api/v1/ssh-port');
-  // console.log(response.data);
-  
-  remotePort = response.data.results.sshPort;
-  // console.debug(`Ssh port : ${remotePort}`)
+  if(argv["ssh-tunnel"]) {
+    const response = await axios.get(server_url+'api/v1/ssh-port');
+    remotePort = response.data.results.sshPort;
+  } else {
+    remotePort = null
+  }
 
   const tunnel = await localtunnel({
     port: argv.port,
