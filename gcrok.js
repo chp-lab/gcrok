@@ -115,7 +115,7 @@ c.on('ready', function() {
     * Note: Your computer must start ssh server on port 22
     MAC: https://support.apple.com/lt-lt/guide/mac-help/mchlp1066/mac
     LINUX: https://www.xda-developers.com/how-to-enable-ssh-on-ubuntu/
-    WINDOWS: Under testing`);
+    WINDOWS: https://medium.com/@lilnya79/setting-up-ssh-server-and-opening-port-22-on-windows-ff9f324823b7`);
   })
 })
 
