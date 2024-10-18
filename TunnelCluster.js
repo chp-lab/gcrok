@@ -22,7 +22,7 @@ module.exports = class TunnelCluster extends EventEmitter {
     this.opts = opts;
     this.totalDataUsed = 0;
     this.LimitMem = 0;
-    this.results = {}
+    this.result = {}
   }
 
   // ดึงค่า LimitMem และ MB_DIVISOR จาก API
@@ -153,16 +153,11 @@ module.exports = class TunnelCluster extends EventEmitter {
           this.totalDataUsed += chunk.length; // นับจำนวนข้อมูลที่ถูกส่ง
           const usedMB = this.totalDataUsed / MB_DIVISOR; // แปลงจากไบต์เป็นเมกะไบต์
           
-          // log ปริมาณข้อมูลที่ใช้ไป
-          // console.log(`Data used: ${usedMB.toFixed(2)} Mb/ 1 Gิิb`);
-          // debug_limit(`Data used: ${usedMB.toFixed(2)} Mb/ 1 Gb`);
-
           if(this.result.limit_mem != null) {
             console.log(`Data used: ${usedMB.toFixed(2)} Mb/ 1 Gิิb`);
-            // debug_limit(`Data used: ${usedMB.toFixed(2)} Mb/ 1 Gb`);
             if (this.totalDataUsed >= this.LimitMem) {
               console.log('Reached over limit : closing connection');
-              local.end(); // ปิดการเชื่อมต่อเมื่อใช้ข้อมูลถึง 1GB
+              local.end();
               remote.end();
               process.exit(1);
             } else {
@@ -170,8 +165,8 @@ module.exports = class TunnelCluster extends EventEmitter {
               await this.updateUsageSettings()
             }
           } else {
-            console.log(`Data used: ${usedMB.toFixed(2)} Mb/ - Gิb`);
             console.log("result_limit :",{limit : this.result.limit_mem, usage : this.totalDataUsed})
+            console.log(`Data used: ${usedMB.toFixed(2)} Mb/ - Gิb`);
             await this.updateUsageSettings()
           }
         };
