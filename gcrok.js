@@ -255,9 +255,8 @@ if (argv["ssh-tunnel"]) {
   });
 
   tunnel.on("error", (err) => {
-    let tag = "tunnel_err";
-    console.debug(tag, err.message);
-    throw err;
+    console.debug(`tunnel error : link disconnected from server.`)
+    process.exit(1);
   });
 
   function keepAlive(s_url) {
@@ -287,6 +286,7 @@ if (argv["ssh-tunnel"]) {
   // let nIntervId;
   // let this_url = tunnel.url;
   console.log("your url is: %s", tunnel.url);
+  console.log("Forwardding : %s -> http://localhost:%s",tunnel.url,argv.port)
   // if (!nIntervId) {
   //   nIntervId = setInterval(keepAlive, 15000, this_url);
   // }
