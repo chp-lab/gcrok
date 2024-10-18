@@ -124,7 +124,7 @@ module.exports = class Tunnel extends EventEmitter {
         return setTimeout(() => creatSystem(data), 5000);
       })
       .catch(function (err) {
-        debug(`tunnel server offline: ${err.message}, retry 1s`);
+        console.log(`tunnel server offline: ${err.message}, retry 1s`);
         return setTimeout(() => creatSystem(data), 1000);
       })
     }
@@ -144,7 +144,7 @@ module.exports = class Tunnel extends EventEmitter {
 
     // re-emit socket error
     this.tunnelCluster.on('error', err => {
-      debug('got socket error', err.message);
+      console.log('got socket error', err.message);
       this.emit('error', err);
     });
 
