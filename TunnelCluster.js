@@ -154,19 +154,21 @@ module.exports = class TunnelCluster extends EventEmitter {
           const usedMB = this.totalDataUsed / MB_DIVISOR; // แปลงจากไบต์เป็นเมกะไบต์ (MB)
           
           if(this.result.limit_mem != null) {
-            console.log(`Data used: ${usedMB.toFixed(2)} MB/ 1 GิิB`);
             if (this.totalDataUsed >= this.LimitMem) {
               console.log('Reached over limit : closing connection');
               local.end();
               remote.end();
               process.exit(1);
             } else {
-              console.log("result_limit :",{limit : this.result.limit_mem, usage : this.totalDataUsed})
+              let show_limit_mem = LimitMem/ MB_DIVISOR;
+              show_limit_mem = show_limit_mem.toFixed(3);
+              this.printProgress("Data Usage: " + usedMB.toFixed(3) + " MB, Package Limit: " + show_limit_mem + " MB");
               await this.updateUsageSettings()
             }
           } else {
-            console.log("result_limit :",{limit : this.result.limit_mem, usage : this.totalDataUsed})
-            console.log(`Data used: ${usedMB.toFixed(2)} MB/ - GิB`);
+            // console.log("result_limit :",{limit : this.result.limit_mem, usage : this.totalDataUsed})
+            // console.log(`Data used: ${usedMB.toFixed(2)} MB/ - GิB`);
+            this.printProgress("Data Usage: " + usedMB.toFixed(3) + " MB, no package limit with Ultra crok promotion!");
             await this.updateUsageSettings()
           }
         };
@@ -201,4 +203,12 @@ module.exports = class TunnelCluster extends EventEmitter {
       connLocal();
     });
   }
+
+  async printProgress(progress){
+    process.stdout.clearLine(0);
+    process.stdout.cursorTo(0);
+    process.stdout.write(progress);
+  }
 };
+
+
