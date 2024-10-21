@@ -151,10 +151,10 @@ module.exports = class TunnelCluster extends EventEmitter {
 
         const trackDataUsage = async (chunk) => {
           this.totalDataUsed += chunk.length; // นับจำนวนข้อมูลที่ถูกส่ง
-          const usedMB = this.totalDataUsed / MB_DIVISOR; // แปลงจากไบต์เป็นเมกะไบต์
+          const usedMB = this.totalDataUsed / MB_DIVISOR; // แปลงจากไบต์เป็นเมกะไบต์ (MB)
           
           if(this.result.limit_mem != null) {
-            console.log(`Data used: ${usedMB.toFixed(2)} Mb/ 1 Gิิb`);
+            console.log(`Data used: ${usedMB.toFixed(2)} MB/ 1 GิิB`);
             if (this.totalDataUsed >= this.LimitMem) {
               console.log('Reached over limit : closing connection');
               local.end();
@@ -166,7 +166,7 @@ module.exports = class TunnelCluster extends EventEmitter {
             }
           } else {
             console.log("result_limit :",{limit : this.result.limit_mem, usage : this.totalDataUsed})
-            console.log(`Data used: ${usedMB.toFixed(2)} Mb/ - Gิb`);
+            console.log(`Data used: ${usedMB.toFixed(2)} MB/ - GิB`);
             await this.updateUsageSettings()
           }
         };
