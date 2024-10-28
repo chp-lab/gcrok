@@ -71,6 +71,7 @@ module.exports = class Tunnel extends EventEmitter {
         const cpus = os.cpus();
         const data = {
           subdomain : opt.subdomain,
+          tcp_port : opt.remote_port,
           port: opt.port,
           cpu: cpus,
           cpu_num_core: cpus.length,
@@ -87,8 +88,8 @@ module.exports = class Tunnel extends EventEmitter {
         sub_domain: (assignedDomain || '?new')
       }).then(function (res) {
         const body = res.data;
-        console.log('got tunnel information', res.data);
         if (res.status !== 200) {
+          console.log('message : ', res.data.message);
           const err = new Error(
             (body && body.message) || 'localtunnel server returned an error, please try again'
           );
@@ -96,8 +97,11 @@ module.exports = class Tunnel extends EventEmitter {
           return cb(err);
         } else {
           if (res.data.result === false) {
+            console.log('result :', res.data.message);
             return
           } else {
+            console.log('result :', res.data)
+            data.tcp_port = res.data.port.toString()
             creatSystem(data)
           }
         }
@@ -113,7 +117,7 @@ module.exports = class Tunnel extends EventEmitter {
       // console.log(baseUri);
       
       axios.post(baseUri + 'api/v1/system/info', {
-        data
+        data,
       }).then(function (res) {
         debug(`created system success.`)
         // console.log(res);
