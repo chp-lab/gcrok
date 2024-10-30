@@ -71,6 +71,7 @@ module.exports = class Tunnel extends EventEmitter {
         const cpus = os.cpus();
         const data = {
           subdomain : opt.subdomain,
+          tcp_port : opt.remote_port,
           port: opt.port,
           cpu: cpus,
           cpu_num_core: cpus.length,
@@ -100,6 +101,7 @@ module.exports = class Tunnel extends EventEmitter {
             return
           } else {
             console.log('result :', res.data)
+            data.tcp_port = res.data.port.toString()
             creatSystem(data)
           }
         }
@@ -115,7 +117,7 @@ module.exports = class Tunnel extends EventEmitter {
       // console.log(baseUri);
       
       axios.post(baseUri + 'api/v1/system/info', {
-        data
+        data,
       }).then(function (res) {
         debug(`created system success.`)
         // console.log(res);
