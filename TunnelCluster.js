@@ -8,12 +8,17 @@ const { Throttle } = require('stream-throttle');
 const axios = require('axios');
 const HeaderHostTransformer = require('./HeaderHostTransformer');
 
+var platform = process.platform;
+const setEnvironment = require("./config/setEnvironment");
+const configYML = new setEnvironment(platform)
+
+const getValueYml = configYML.getValueENV()
+
 // ขีดจำกัดข้อมูล 1GB (1,073,741,824 bytes)
 const LimitMem = 1024 * 1024 * 1024;
 const MB_DIVISOR = 1024 * 1024; // แปลงจากไบต์เป็นเมกะไบต์
 
-
-const token = process.env.TOKEN 
+const token = process.env.TOKEN || getValueYml.agent.authtoken
 const url = process.env.URL_SERVER || 'https://giantiot.com/'
 
 module.exports = class TunnelCluster extends EventEmitter {
