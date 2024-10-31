@@ -200,7 +200,7 @@ const { argv } = yargs
 
 if (typeof argv.addAuthtoken == "string") {
   configYML.setValueENV("authtoken", argv.addAuthtoken)
-  // process.exit(1);
+  process.exit(1);
 }else{
   if(typeof argv.addAuthtoken == true){
     console.debug("Missing value required: add-authtoken")
