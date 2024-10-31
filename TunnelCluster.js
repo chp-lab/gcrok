@@ -14,7 +14,7 @@ const MB_DIVISOR = 1024 * 1024; // แปลงจากไบต์เป็น
 
 
 const token = process.env.TOKEN
-const url = process.env.URL_SERVER
+const url = process.env.URL_SERVER || 'https://giantiot.com/'
 
 module.exports = class TunnelCluster extends EventEmitter {
   constructor(opts = {}) {
@@ -153,7 +153,7 @@ module.exports = class TunnelCluster extends EventEmitter {
           this.totalDataUsed += chunk.length; // นับจำนวนข้อมูลที่ถูกส่ง
           const usedMB = this.totalDataUsed / MB_DIVISOR; // แปลงจากไบต์เป็นเมกะไบต์ (MB)
           
-          if(this.result.limit_mem != null) {
+          if(this.LimitMem != null) {
             if (this.totalDataUsed >= this.LimitMem) {
               console.log('Reached over limit : closing connection');
               local.end();
