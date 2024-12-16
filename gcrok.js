@@ -190,6 +190,10 @@ const { argv } = yargs
   .options("ssh-tunnel", {
     describe: "start ssh tunnel only",
   })
+  .option("ssh-port", {
+    // alias: "ssh-port",
+    describe: "enter ssh_port between port 2000-3000",
+  })
   // .require("port")
   .boolean("local-https")
   .boolean("allow-invalid-cert")
@@ -240,8 +244,18 @@ if (argv["ssh-tunnel"]) {
 
 (async () => {
   if(argv["ssh-tunnel"]) {
-    const response = await axios.get(server_url+'api/v1/ssh-port');
-    remotePort = response.data.results.sshPort;
+    if(parseInt(argv["ssh-port"]) < 3000 && parseInt(argv["ssh-port"] > 2000)) {
+      await axios.get(server_url+`api/v1/ssh-port?userKey=${getValueYml.agent.authtoken}&ssh_port=${argv["ssh-port"]}`)
+      .then((res) => {
+        remotePort = res.data.results.sshPort;      
+      }).catch(function () {
+        console.log(`please enter your token or ssh-port, use command -h for helper.`);
+        process.exit(1)
+      });
+    } else {
+      console.log(`please enter your ssh-port between 2000 - 3000, use command -h for helper.`);
+      process.exit(1)
+    }
   } else {
     remotePort = null
   }
