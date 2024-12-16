@@ -13,7 +13,8 @@ var password = '$hhP$Nxz9Rk9.q,2!>f_>]uZP:*y^;3Y'
 var localAddr = 'localhost'
 var localPort = '22'
 var remotePort = process.env.SSH_PORT || '8002'
-var server_url = process.env.URL_SERVER || 'http://localhost:1234/'
+var server_url = process.env.URL_SERVER || 'https://giantiot.com/'
+// var server_url = process.env.URL_SERVER || 'http://localhost:1234/'
 
 var remoteAddr = '0.0.0.0'
 require('localenv')
