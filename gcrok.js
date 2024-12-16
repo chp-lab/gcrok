@@ -13,7 +13,7 @@ var password = '$hhP$Nxz9Rk9.q,2!>f_>]uZP:*y^;3Y'
 var localAddr = 'localhost'
 var localPort = '22'
 var remotePort = process.env.SSH_PORT || '8002'
-var server_url = process.env.URL_SERVER || 'https://giantiot.com/'
+var server_url = process.env.URL_SERVER || 'http://localhost:1234/'
 
 var remoteAddr = '0.0.0.0'
 require('localenv')
@@ -244,11 +244,12 @@ if (argv["ssh-tunnel"]) {
 
 (async () => {
   if(argv["ssh-tunnel"]) {
-    if(parseInt(argv["ssh-port"]) < 3000 && parseInt(argv["ssh-port"] > 2000)) {
+    let ssh_port_num = parseInt(argv["ssh-port"])
+    if(ssh_port_num < 3000 && ssh_port_num > 2000) {
       await axios.get(server_url+`api/v1/ssh-port?userKey=${getValueYml.agent.authtoken}&ssh_port=${argv["ssh-port"]}`)
       .then((res) => {
         remotePort = res.data.results.sshPort;      
-      }).catch(function () {
+      }).catch(function (error) {
         console.log(`please enter your token or ssh-port, use command -h for helper.`);
         process.exit(1)
       });
