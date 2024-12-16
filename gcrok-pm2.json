@@ -1,6 +1,6 @@
 [
     {
-            "script"    : "node ./gcrok.js",
-            "name"      : "gcrok"
+            "script"    : "node /home/smart/gcrok/gcrok.js --ssh-tunnel",
+            "name"      : "gcrok-with-ssh"
     }
 ]
