@@ -18,7 +18,7 @@ const getValueYml = configYML.getValueENV()
 const LimitMem = 1024 * 1024 * 1024;
 const MB_DIVISOR = 1024 * 1024; // แปลงจากไบต์เป็นเมกะไบต์
 
-const token = process.env.TOKEN || getValueYml.agent.authtoken
+const token = getValueYml.agent.authtoken
 const url = process.env.URL_SERVER || 'https://giantiot.com/'
 
 module.exports = class TunnelCluster extends EventEmitter {

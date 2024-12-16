@@ -14,6 +14,7 @@ var localAddr = 'localhost'
 var localPort = '22'
 var remotePort = process.env.SSH_PORT || '8002'
 var server_url = process.env.URL_SERVER || 'https://giantiot.com/'
+// var server_url = process.env.URL_SERVER || 'http://localhost:1234/'
 
 var remoteAddr = '0.0.0.0'
 require('localenv')
@@ -116,7 +117,7 @@ c.on('ready', function() {
     * Note: Your computer must start ssh server on port 22
     MAC: https://support.apple.com/lt-lt/guide/mac-help/mchlp1066/mac
     LINUX: https://www.xda-developers.com/how-to-enable-ssh-on-ubuntu/
-    WINDOWS: Under testing`);
+    WINDOWS: https://medium.com/@lilnya79/setting-up-ssh-server-and-opening-port-22-on-windows-ff9f324823b7`);
   })
 })
 
@@ -190,6 +191,10 @@ const { argv } = yargs
   .options("ssh-tunnel", {
     describe: "start ssh tunnel only",
   })
+  .option("ssh-port", {
+    // alias: "ssh-port",
+    describe: "enter ssh_port between port 2000-3000",
+  })
   // .require("port")
   .boolean("local-https")
   .boolean("allow-invalid-cert")
@@ -240,8 +245,19 @@ if (argv["ssh-tunnel"]) {
 
 (async () => {
   if(argv["ssh-tunnel"]) {
-    const response = await axios.get(server_url+'api/v1/ssh-port');
-    remotePort = response.data.results.sshPort;
+    let ssh_port_num = parseInt(argv["ssh-port"])
+    if(ssh_port_num < 3000 && ssh_port_num > 2000 || !argv["ssh-port"]) {
+      await axios.get(server_url+`api/v1/ssh-port?userKey=${getValueYml.agent.authtoken}&ssh_port=${argv["ssh-port"]}`)
+      .then((res) => {
+        remotePort = res.data.results.sshPort;      
+      }).catch(function (error) {
+        console.log(`please enter your token or ssh-port, use command -h for helper.`);
+        process.exit(1)
+      });
+    } else {
+      console.log(`please enter your ssh-port between 2000 - 3000, use command -h for helper.`);
+      process.exit(1)
+    }
   } else {
     remotePort = null
   }
