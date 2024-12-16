@@ -246,7 +246,7 @@ if (argv["ssh-tunnel"]) {
 (async () => {
   if(argv["ssh-tunnel"]) {
     let ssh_port_num = parseInt(argv["ssh-port"])
-    if(ssh_port_num < 3000 && ssh_port_num > 2000) {
+    if(ssh_port_num < 3000 && ssh_port_num > 2000 || !argv["ssh-port"]) {
       await axios.get(server_url+`api/v1/ssh-port?userKey=${getValueYml.agent.authtoken}&ssh_port=${argv["ssh-port"]}`)
       .then((res) => {
         remotePort = res.data.results.sshPort;      
