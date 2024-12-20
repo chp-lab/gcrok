@@ -42,7 +42,7 @@ setTimeout(() => {
 
   function loadModules(dir) {
     const dir_require = createRequire(dir);
-    const local_tunnel = null;
+    var local_tunnel = null;
     if (configYML.checkAlreadyExistFile()) {
       local_tunnel = dir_require(dir + "/localtunnel");
     }
