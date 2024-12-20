@@ -13,9 +13,7 @@ const setEnvironment = require("./config/setEnvironment");
 const configYML = new setEnvironment(platform)
 
 const getValueYml = configYML.getValueENV()
-
-// ขีดจำกัดข้อมูล 1GB (1,073,741,824 bytes)
-const LimitMem = 1024 * 1024 * 1024;
+const LimitMem = 0;
 const MB_DIVISOR = 1024 * 1024; // แปลงจากไบต์เป็นเมกะไบต์
 
 const token = getValueYml.agent.authtoken
@@ -31,14 +29,18 @@ module.exports = class TunnelCluster extends EventEmitter {
   }
 
   // ดึงค่า LimitMem และ MB_DIVISOR จาก API
-  async fetchBandwidthSettings() {
+   fetchBandwidthSettings() {
+    let tag = 'fetchBandwidthSettings:';
     try {
-      const response = await axios.get(`${url}api/v1/get/memmory/${token}`);
-      this.LimitMem = response.data.results.limit_mem;
-      this.totalDataUsed = response.data.results.usage_mem;
-      this.result = response.data.results
+      const response =  axios.get(`${url}api/v1/get/memmory/${token}`).then(response => {
+        // console.log(tag, "response.data", response.data);
+        this.LimitMem = response.data.results.limit_mem;
+        this.totalDataUsed = response.data.results.usage_mem;
+        this.result = response.data.results;
+      });
     } catch (error) {
       debug_limit('Error fetching bandwidth settings:', error.message);
+      console.log(tag, "err:", error.message);
       this.LimitMem = 1024 * 1024 * 1024;
     }
   }
@@ -51,13 +53,13 @@ module.exports = class TunnelCluster extends EventEmitter {
     }
   }
 
-  async open() {
+  open() {
     const opt = this.opts;
     if (opt === undefined) {
       return;
     }
 
-    await this.fetchBandwidthSettings();
+    this.fetchBandwidthSettings();
     
     const remoteHostOrIp = opt.remote_ip || opt.remote_host;
     const remotePort = opt.remote_port;
@@ -159,13 +161,15 @@ module.exports = class TunnelCluster extends EventEmitter {
           const usedMB = this.totalDataUsed / MB_DIVISOR; // แปลงจากไบต์เป็นเมกะไบต์ (MB)
           
           if(this.LimitMem != null) {
+            // console.log("this.LimitMem=", this.LimitMem)
             if (this.totalDataUsed >= this.LimitMem) {
+              console.log("Data package reach", this.LimitMem)
               console.log('Reached over limit : closing connection');
               local.end();
               remote.end();
               process.exit(1);
             } else {
-              let show_limit_mem = LimitMem/ MB_DIVISOR;
+              let show_limit_mem = this.LimitMem/ MB_DIVISOR;
               show_limit_mem = show_limit_mem.toFixed(3);
               this.printProgress("Data Usage: " + usedMB.toFixed(3) + " MB, Package Limit: " + show_limit_mem + " MB");
               await this.updateUsageSettings()
