@@ -2,6 +2,7 @@ const fs = require("fs");
 const yaml = require("js-yaml");
 const path = require("path");
 const os = require("os");
+const YAML = require('yaml');
 
 class setEnvironment {
   constructor(platform) {
@@ -98,9 +99,29 @@ class setEnvironment {
       console.log("Please create gcrok.yml at:", this.gcrokPath);
       console.log(`Sample contents
         version: '3'
-          agent:
+        agent:
           authtoken: your_auth_atoken`)
       console.log("gcrok.yml not found.");
+      try {
+        let tmpDir = this.gcrokPath.replace('gcrok.yml', '');
+        if (!fs.existsSync(tmpDir)) {
+          fs.mkdirSync(tmpDir);
+        }
+        // let content = 'version: \'3\'\r\nagent:\r\n\tauthtoken: your_auth_atoken';
+        let tmpYmlStr = YAML.stringify({ version: 3, agent:  {'authtoken': 'your_auth_atoken'} })
+        console.log("tmpYmlStr:", tmpYmlStr);
+        
+          try {
+            fs.writeFileSync(this.gcrokPath, tmpYmlStr);
+            // file written successfully
+            console.log("Create gcrok.yml template file success");
+          } catch (err) {
+            console.error(err);
+          }
+        
+      } catch (err) {
+        console.error("Error on create gcrok.yml:", err);
+      }
       // process.exit(1);
       return null
     }
