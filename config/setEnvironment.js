@@ -27,6 +27,7 @@ class setEnvironment {
       );
     } else if (platform === "linux") {
       this.gcrokPath = path.join(homeDir, ".config", "gcrok", "gcrok.yml");
+      console.log("gcrokPath:", this.gcrokPath);
     } else if (platform == "win32") {
       // process.env.HOMEPATH,
       this.gcrokPath = path.join(
@@ -85,6 +86,7 @@ class setEnvironment {
   getValueENV() {
     if (fs.existsSync(this.gcrokPath)) {
       try {
+        
         let fileContents = fs.readFileSync(this.gcrokPath, "utf8");
         let data = yaml.load(fileContents);
         //   console.log("Contents of gcrok.yml:", data);
@@ -93,6 +95,11 @@ class setEnvironment {
         console.error("Error reading gcrok.yml:", e);
       }
     } else {
+      console.log("Please create gcrok.yml at:", this.gcrokPath);
+      console.log(`Sample contents
+        version: '3'
+          agent:
+          authtoken: your_auth_atoken`)
       console.log("gcrok.yml not found.");
       // process.exit(1);
       return null
