@@ -31,24 +31,34 @@ setTimeout(() => {
   var os_username = require("os").userInfo().username;
 
   console.debug("platform is", platform);
-  const configYML = new setEnvironment(platform)
+  const configYML = new setEnvironment(platform);
+  var getValueYml = ""
+  if (configYML.checkAlreadyExistFile()) {
+    getValueYml = configYML.getValueENV();
+  }
 
   // SSH Client
-  const { Client } = require('ssh2');
+  const { Client } = require("ssh2");
 
   function loadModules(dir) {
     const dir_require = createRequire(dir);
+    const local_tunnel = null;
+    if (configYML.checkAlreadyExistFile()) {
+      local_tunnel = dir_require(dir + "/localtunnel");
+    }
     return {
       localenv: require("localenv"),
       openurl: require("openurl"),
       yargs: require("yargs"),
-      localtunnel: dir_require(dir + "/localtunnel"),
+      // localtunnel: dir_require(dir + "/localtunnel"),
+      localtunnel: local_tunnel,
       version: dir_require(dir + "/package").version,
     };
   }
 
   if (platform === "darwin" || platform === "linux") {
-    ({ localenv, openurl, yargs, localtunnel, version } = loadModules(this_dir));
+    ({ localenv, openurl, yargs, localtunnel, version } =
+      loadModules(this_dir));
   } else if (platform == "win32") {
     // const axios = require('axios');
     // const gcrok_test = createRequire('/Users/chatpethkenanan/INET/ebike/gcrok/gcrok_test.js');
@@ -56,10 +66,12 @@ setTimeout(() => {
 
     dir_require = createRequire(__dirname);
     // localenv = dir_require(this_dir + "/localenv");
-    require('localenv');
+    require("localenv");
     openurl = require("openurl");
     yargs = require("yargs");
-    localtunnel = require("./localtunnel");
+    if (configYML.checkAlreadyExistFile()) {
+      localtunnel = require("./localtunnel");
+    }
     const { this_version } = require("./package");
     version = this_version;
   } else {
@@ -71,45 +83,46 @@ setTimeout(() => {
 
   // SSH Tunnels
   c = new Client();
-  c.on('connect', function() {
-    console.log('Connection :: connect')
-  })
+  c.on("connect", function () {
+    console.log("Connection :: connect");
+  });
 
-  c.on('tcp connection', function(info, accept, reject) {
-    console.log('TCP :: INCOMING CONNECTION: ' + 
-    require('util').inspect(info));
+  c.on("tcp connection", function (info, accept, reject) {
+    console.log("TCP :: INCOMING CONNECTION: " + require("util").inspect(info));
 
-    var stream = accept()
-    var socket
-    
-    stream.on('data', function(data) {
-        // console.log('TCP :: DATA: ' + data);
-    })
+    var stream = accept();
+    var socket;
 
-    stream.on('end', function() {
-        console.log('TCP :: EOF');
-    })
+    stream.on("data", function (data) {
+      // console.log('TCP :: DATA: ' + data);
+    });
 
-    stream.on('error', function(err) {
-        console.log('TCP :: ERROR: ' + err);
-    })
+    stream.on("end", function () {
+      console.log("TCP :: EOF");
+    });
 
-    stream.on('close', function(had_err) {
-        console.log('TCP :: CLOSED', had_err ? 'had error' : '');
-    })
+    stream.on("error", function (err) {
+      console.log("TCP :: ERROR: " + err);
+    });
 
-    stream.pause()
+    stream.on("close", function (had_err) {
+      console.log("TCP :: CLOSED", had_err ? "had error" : "");
+    });
+
+    stream.pause();
     socket = net.connect(localPort, localAddr, function () {
-    stream.pipe(socket);
-    socket.pipe(stream);
-    stream.resume();
-    })
-  })
+      stream.pipe(socket);
+      socket.pipe(stream);
+      stream.resume();
+    });
+  });
 
-  c.on('ready', function() {
-    console.log('Connection :: ready')
-    c.forwardIn(remoteAddr, remotePort, function(err) {
-      if (err) { throw err }
+  c.on("ready", function () {
+    console.log("Connection :: ready");
+    c.forwardIn(remoteAddr, remotePort, function (err) {
+      if (err) {
+        throw err;
+      }
       console.log(`Forwarding connections from remote server on port ${remotePort} to ssh tunnels
       To ssh to gcrok host (local computer) use 
       $ ssh your_user_name@${hostname} -p ${remotePort}
@@ -119,20 +132,20 @@ setTimeout(() => {
       MAC: https://support.apple.com/lt-lt/guide/mac-help/mchlp1066/mac
       LINUX: https://www.xda-developers.com/how-to-enable-ssh-on-ubuntu/
       WINDOWS: https://medium.com/@lilnya79/setting-up-ssh-server-and-opening-port-22-on-windows-ff9f324823b7`);
-    })
-  })
+    });
+  });
 
-  c.on('error', function(err) {
-    console.log('Connection :: error :: ', err)
-  })
+  c.on("error", function (err) {
+    console.log("Connection :: error :: ", err);
+  });
 
-  c.on('end', function() {
-    console.log('Connection :: end')
-  })
+  c.on("end", function () {
+    console.log("Connection :: end");
+  });
 
-  c.on('close', function(had_error) {
-    console.log('Connection :: close', had_error ? 'had error' : '')
-  })
+  c.on("close", function (had_error) {
+    console.log("Connection :: close", had_error ? "had error" : "");
+  });
 
   const { argv } = yargs
     .usage(
@@ -168,7 +181,8 @@ setTimeout(() => {
       describe: "Path to certificate key file for local HTTPS server",
     })
     .option("local-ca", {
-      describe: "Path to certificate authority file for self-signed certificates",
+      describe:
+        "Path to certificate authority file for self-signed certificates",
     })
     .option("allow-invalid-cert", {
       describe:
@@ -205,23 +219,21 @@ setTimeout(() => {
     .version(version);
 
   if (typeof argv.addAuthtoken == "string") {
-    configYML.setValueENV("authtoken", argv.addAuthtoken)
+    configYML.setValueENV("authtoken", argv.addAuthtoken);
     process.exit(1);
-  }else{
-    if(typeof argv.addAuthtoken == true){
-      console.debug("Missing value required: add-authtoken")
+  } else {
+    if (typeof argv.addAuthtoken == true) {
+      console.debug("Missing value required: add-authtoken");
       process.exit(1);
     }
   }
 
-  const getValueYml = configYML.getValueENV()
-
-  if (argv.showAuthtoken) {
+  if (argv.showAuthtoken && configYML.checkAlreadyExistFile()) {
     console.log("Contents of gcrok.yml:", getValueYml.agent.authtoken);
     process.exit(1);
   }
 
-  if(getValueYml == null){
+  if (!configYML.checkAlreadyExistFile()) {
     yargs.showHelp();
     console.error("\nPlease provide arguments: `--add-authtoken`");
     process.exit(1);
@@ -239,33 +251,42 @@ setTimeout(() => {
       host: hostname,
       port: port,
       username: username,
-      password: password
-    }
+      password: password,
+    };
     c.connect(obj);
   }
 
   (async () => {
-    if(argv["ssh-tunnel"]) {
-      let ssh_port_num = parseInt(argv["ssh-port"])
-      if(ssh_port_num < 3000 && ssh_port_num > 2000 || !argv["ssh-port"]) {
-        await axios.get(server_url+`api/v1/ssh-port?userKey=${getValueYml.agent.authtoken}&ssh_port=${argv["ssh-port"]}`)
-        .then((res) => {
-          remotePort = res.data.results.sshPort;      
-        }).catch(function (error) {
-          console.log(`please enter your token or ssh-port, use command -h for helper.`);
-          process.exit(1)
-        });
+    if (argv["ssh-tunnel"]) {
+      let ssh_port_num = parseInt(argv["ssh-port"]);
+      if ((ssh_port_num < 3000 && ssh_port_num > 2000) || !argv["ssh-port"]) {
+        await axios
+          .get(
+            server_url +
+              `api/v1/ssh-port?userKey=${getValueYml.agent.authtoken}&ssh_port=${argv["ssh-port"]}`
+          )
+          .then((res) => {
+            remotePort = res.data.results.sshPort;
+          })
+          .catch(function (error) {
+            console.log(
+              `please enter your token or ssh-port, use command -h for helper.`
+            );
+            process.exit(1);
+          });
       } else {
-        console.log(`please enter your ssh-port between 2000 - 3000, use command -h for helper.`);
-        process.exit(1)
+        console.log(
+          `please enter your ssh-port between 2000 - 3000, use command -h for helper.`
+        );
+        process.exit(1);
       }
     } else {
-      remotePort = null
+      remotePort = null;
     }
 
     const tunnel = await localtunnel({
       port: argv.port,
-      ssh_port : remotePort,
+      ssh_port: remotePort,
       host: argv.host,
       subdomain: argv.subdomain,
       local_host: argv.localHost,
@@ -274,13 +295,13 @@ setTimeout(() => {
       local_key: argv.localKey,
       local_ca: argv.localCa,
       allow_invalid_cert: argv.allowInvalidCert,
-      auth_token: getValueYml.agent.authtoken
+      auth_token: getValueYml.agent.authtoken,
     }).catch((err) => {
       throw err;
     });
 
     tunnel.on("error", (err) => {
-      console.debug(`tunnel error : link disconnected from server.`)
+      console.debug(`tunnel error : link disconnected from server.`);
       process.exit(1);
     });
 
@@ -311,7 +332,11 @@ setTimeout(() => {
     // let nIntervId;
     // let this_url = tunnel.url;
     console.log("your url is: %s", tunnel.url);
-    console.log("Forwardding : %s -> http://localhost:%s",tunnel.url,argv.port)
+    console.log(
+      "Forwardding : %s -> http://localhost:%s",
+      tunnel.url,
+      argv.port
+    );
     // if (!nIntervId) {
     //   nIntervId = setInterval(keepAlive, 15000, this_url);
     // }
@@ -335,4 +360,4 @@ setTimeout(() => {
       });
     }
   })();
-},3000)
+}, 3000);

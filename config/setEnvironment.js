@@ -77,7 +77,7 @@ class setEnvironment {
     try {
       let yamlStr = yaml.dump(data);
       fs.writeFileSync(this.gcrokPath, yamlStr, "utf8");
-      console.info(`${key} set to ${value} in gcrok.yml`);
+      console.info(`Your ${key} is ${value} in gcrok.yml`);
     } catch (e) {
       console.error("Error writing to gcrok.yml:", e);
     }
@@ -103,6 +103,14 @@ class setEnvironment {
       console.log("gcrok.yml not found.");
       // process.exit(1);
       return null
+    }
+  }
+
+  checkAlreadyExistFile(){
+    if (fs.existsSync(this.gcrokPath)) {
+      return true
+    }else{
+      return false
     }
   }
 }
