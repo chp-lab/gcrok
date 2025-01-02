@@ -99,6 +99,8 @@ setTimeout(() => {
 
     stream.on("end", function () {
       console.log("TCP :: EOF");
+      console.log("Stop tunnel by expected, should restart it via pm2");
+      process.exit(1);
     });
 
     stream.on("error", function (err) {
@@ -204,7 +206,7 @@ setTimeout(() => {
       describe: "show authtoken to gcrok.yml",
     })
     .options("ssh-tunnel", {
-      describe: "start ssh tunnel only",
+      describe: "start ssh tunnel",
     })
     .option("ssh-port", {
       // alias: "ssh-port",
@@ -252,6 +254,7 @@ setTimeout(() => {
       port: port,
       username: username,
       password: password,
+      readyTimeout: 60000
     };
     c.connect(obj);
   }
