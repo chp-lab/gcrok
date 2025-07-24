@@ -339,7 +339,7 @@ setTimeout(() => {
     // let this_url = tunnel.url;
     console.log("your url is: %s", tunnel.url);
     console.log(
-      "Forwardding : %s -> http://localhost:%s",
+      "Forwardding : %s -> http(s)://localhost:%s",
       tunnel.url,
       argv.port
     );
