@@ -214,13 +214,13 @@ module.exports = class TunnelCluster extends EventEmitter {
   }
 
   async printProgress(progress){
-    try {
-      process.stdout.clearLine(0);
-      process.stdout.cursorTo(0);
-      process.stdout.write(progress);
-    } catch (e) {
-      console.debug(progress);
-    }
+    // try {
+    //   process.stdout.clearLine(0);
+    //   process.stdout.cursorTo(0);
+    //   process.stdout.write(progress);
+    // } catch (e) {
+    //   console.debug(progress);
+    // }
     
   }
 };
