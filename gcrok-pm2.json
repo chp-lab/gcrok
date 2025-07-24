@@ -1,6 +1,6 @@
 [
     {
-            "script"    : "node ./gcrok.js",
+            "script"    : "node ./gcrok.js --ssh-tunnel --ssh-port 2001",
             "name"      : "gcrok"
     }
 ]
