@@ -1,0 +1,1103 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Off Road</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%99%3C/text%3E%3C/svg%3E">
+<style>
+/* Off Road — dark, high-contrast, near-zero animation (ประหยัดแบต/จอ OLED) */
+:root {
+  --bg: #000; --surface: #0d0d10; --surface2: #17171c; --line: #2a2a32;
+  --text: #ececf0; --muted: #9a9aa6;
+  --ok: #3ddc84; --warn: #ffb020; --crit: #ff5a5f; --info: #4da3ff;
+  --yellow: #ffd60a; --orange: #ff8a1f; --red: #ff3b30;
+  --radius: 10px;
+  --font: "Segoe UI", "Leelawadee UI", "Noto Sans Thai", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+h1, h2, h3 { margin: 0; font-weight: 600; }
+a { color: var(--info); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
+
+/* layout */
+.shell { display: grid; grid-template-columns: 200px 1fr; min-height: 100vh; }
+nav { background: var(--surface); border-right: 1px solid var(--line); padding: 14px 10px; position: sticky; top: 0; height: 100vh; }
+nav .brand { font-size: 20px; font-weight: 700; padding: 4px 10px 14px; }
+nav .brand small { display: block; font-size: 11px; font-weight: 400; color: var(--muted); }
+nav a { display: block; padding: 9px 12px; border-radius: 8px; color: var(--text); text-decoration: none; }
+nav a:hover { background: var(--surface2); }
+nav a.active { background: var(--surface2); box-shadow: inset 3px 0 0 var(--info); }
+main { padding: 16px 20px 60px; min-width: 0; }
+header.top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+header.top h1 { font-size: 22px; }
+header.top .spacer { flex: 1; }
+.clock { font-variant-numeric: tabular-nums; color: var(--muted); }
+@media (max-width: 820px) {
+  .shell { grid-template-columns: 1fr; }
+  nav { position: static; height: auto; display: flex; gap: 4px; overflow-x: auto; padding: 8px; border-right: 0; border-bottom: 1px solid var(--line); }
+  nav .brand { display: none; }
+  nav a { white-space: nowrap; }
+  main { padding: 12px 12px 60px; }
+}
+
+/* cards & grid */
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.grid.wide { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
+.card > h2 { font-size: 13px; letter-spacing: .04em; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.card.span2 { grid-column: 1 / -1; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.big { font-size: 34px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.row { display: flex; align-items: center; gap: 10px; }
+.row.wrap { flex-wrap: wrap; }
+.between { justify-content: space-between; }
+.gap { gap: 8px; }
+.mt { margin-top: 12px; }
+
+/* status colours */
+.ok { color: var(--ok); } .warn { color: var(--warn); } .crit { color: var(--crit); } .info { color: var(--info); }
+.chip { display: inline-block; padding: 1px 9px; border-radius: 99px; font-size: 12px; border: 1px solid var(--line); background: var(--surface2); white-space: nowrap; }
+.chip.ok { border-color: #1f6b43; } .chip.warn { border-color: #7a5410; } .chip.crit { border-color: #8a2a2d; } .chip.info { border-color: #1f4f80; }
+.flag { display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px; border-radius: 99px; font-weight: 700; color: #000; }
+.flag.yellow { background: var(--yellow); } .flag.orange { background: var(--orange); } .flag.red { background: var(--red); color: #fff; }
+
+/* meters */
+.bar { height: 8px; border-radius: 99px; background: var(--surface2); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: 99px; background: var(--ok); }
+.bar.warn > i { background: var(--warn); } .bar.crit > i { background: var(--crit); } .bar.info > i { background: var(--info); }
+.ring { position: relative; width: 132px; height: 132px; flex: none; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring .track { stroke: var(--surface2); } .ring .val { stroke: var(--ok); stroke-linecap: round; }
+.ring.warn .val { stroke: var(--warn); } .ring.crit .val { stroke: var(--crit); }
+.ring .label { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.ring .label b { font-size: 26px; font-variant-numeric: tabular-nums; }
+.spark { display: flex; align-items: flex-end; gap: 6px; height: 74px; }
+.spark div { flex: 1; text-align: center; font-size: 11px; color: var(--muted); display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+.spark span { display: block; background: var(--info); border-radius: 3px 3px 0 0; min-height: 2px; }
+.spark span.low { background: var(--crit); }
+
+/* lists / tables */
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { padding: 7px 0; border-bottom: 1px solid var(--line); display: flex; gap: 10px; align-items: baseline; }
+.list li:last-child { border-bottom: 0; }
+.list .grow { flex: 1; min-width: 0; }
+.list time { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.group td { background: var(--surface2); font-weight: 600; }
+
+/* controls */
+input, select, textarea { background: var(--surface2); border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; min-width: 0; }
+input[type=number] { width: 90px; }
+input[type=time] { width: 112px; }
+input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--info); }
+input.wide, textarea { width: 100%; }
+td input:not([type=checkbox]), td select { width: 100%; min-width: 70px; }
+td input[type=number], td input[type=time], td input[type=date] { max-width: 120px; }
+td { white-space: nowrap; }
+td:has(> input:not([type=number]):not([type=checkbox]):not([type=time]):not([type=date])) { white-space: normal; }
+button { background: var(--surface2); border: 1px solid var(--line); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button.primary { background: #123a63; border-color: #1f5f9f; }
+button.danger { color: var(--crit); }
+button.sm { padding: 2px 8px; font-size: 13px; }
+button.seg.on { background: #123a63; border-color: var(--info); }
+button.seg[data-flag=yellow].on { background: var(--yellow); color: #000; border-color: var(--yellow); }
+button.seg[data-flag=orange].on { background: var(--orange); color: #000; border-color: var(--orange); }
+button.seg[data-flag=red].on { background: var(--red); color: #fff; border-color: var(--red); }
+form.inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* checklist */
+.check { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); align-items: flex-start; }
+.check.done span.t { color: var(--muted); text-decoration: line-through; }
+.check .t { flex: 1; cursor: pointer; }
+
+/* knowledge base */
+.kbgrid { display: grid; grid-template-columns: 320px 1fr; gap: 14px; }
+@media (max-width: 900px) { .kbgrid { grid-template-columns: 1fr; } }
+.doclink { display: block; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 8px 4px; }
+.doclink:hover, .doclink.active { background: var(--surface2); }
+.doclink .snip { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+mark { background: #6b5200; color: #fff; border-radius: 2px; }
+.md h1 { font-size: 22px; margin: 0 0 10px; } .md h2 { font-size: 18px; margin: 18px 0 8px; } .md h3 { font-size: 16px; margin: 14px 0 6px; }
+.md p { margin: 8px 0; } .md ul, .md ol { padding-left: 22px; margin: 8px 0; } .md li.task { list-style: none; margin-left: -22px; }
+.md code { background: var(--surface2); padding: 1px 5px; border-radius: 4px; }
+.md pre { background: var(--surface2); padding: 10px; border-radius: 8px; overflow-x: auto; }
+.md blockquote { margin: 10px 0; padding: 4px 12px; border-left: 3px solid var(--warn); background: var(--surface2); }
+.md table { margin: 10px 0; } .md th, .md td { border: 1px solid var(--line); }
+.md hr { border: 0; border-top: 1px solid var(--line); }
+iframe.doc { width: 100%; height: 72vh; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+
+/* toast */
+#toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--line); padding: 8px 16px; border-radius: 99px; opacity: 0; pointer-events: none; transition: opacity .15s; z-index: 9; }
+#toast.show { opacity: 1; } #toast.err { border-color: var(--crit); color: var(--crit); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* โหมดไฟล์เดียว */
+body.local .js-reindex { display: none; }
+nav .navtools { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+nav .navtools button { text-align: left; font-size: 13px; }
+nav .navtools .status { font-size: 11px; color: var(--muted); padding: 2px 4px; }
+.kbtools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+@media (max-width: 820px) { nav .navtools { display: none; } }
+
+</style>
+</head>
+<body class="local">
+<div class="shell">
+  <nav id="nav">
+    <div class="brand">🚙 Off Road<small>Command Center · Offline</small></div>
+    <a href="#dashboard" data-v="dashboard">📊 แดชบอร์ด</a>
+    <a href="#supplies" data-v="supplies">💧 เสบียง</a>
+    <a href="#power" data-v="power">🔋 พลังงาน</a>
+    <a href="#fleet" data-v="fleet">📱 อุปกรณ์ &amp; SIM</a>
+    <a href="#knowledge" data-v="knowledge">📚 คลังความรู้</a>
+    <a href="#log" data-v="log">📝 บันทึก &amp; Checklist</a>
+  </nav>
+  <main id="app"></main>
+</div>
+<div id="toast" role="status"></div>
+<script>
+window.OFFROAD_SEED = {"v":1,"settings":{"active_phase":"1","warn_days":"7","crit_days":"3","solar_default_condition":"partly"},"supplies":[{"id":1,"category":"water","name":"ถังน้ำดาดฟ้า (gravity-feed)","unit":"ลิตร","qty_initial":1000.0,"qty_remaining":1000.0,"daily_use":40.0,"note":"ตัวอย่าง — แก้ไขตามจริง","updated_at":"2026-10-05T11:43:16+00:00"},{"id":2,"category":"water","name":"น้ำดื่มขวด","unit":"ลิตร","qty_initial":90.0,"qty_remaining":90.0,"daily_use":8.0,"note":"ตัวอย่าง — แก้ไขตามจริง","updated_at":"2026-10-05T11:43:16+00:00"},{"id":3,"category":"food","name":"อาหารสำเร็จรูป MRE","unit":"ซอง","qty_initial":30.0,"qty_remaining":30.0,"daily_use":9.0,"note":"ตัวอย่าง — แก้ไขตามจริง","updated_at":"2026-10-05T11:43:16+00:00"},{"id":4,"category":"food","name":"อาหารกระป๋อง","unit":"กระป๋อง","qty_initial":40.0,"qty_remaining":40.0,"daily_use":12.0,"note":"ตัวอย่าง — แก้ไขตามจริง","updated_at":"2026-10-05T11:43:16+00:00"},{"id":5,"category":"food","name":"อาหารแห้ง (ข้าวสาร/เส้น)","unit":"กก.","qty_initial":15.0,"qty_remaining":15.0,"daily_use":2.0,"note":"ตัวอย่าง — แก้ไขตามจริง","updated_at":"2026-10-05T11:43:16+00:00"},{"id":6,"category":"gas","name":"แก๊สกระป๋องปิกนิก","unit":"กระป๋อง","qty_initial":12.0,"qty_remaining":12.0,"daily_use":1.0,"note":"ตัวอย่าง — แก้ไขตามจริง","updated_at":"2026-10-05T11:43:16+00:00"},{"id":7,"category":"fuel","name":"ไฟแช็ก / เชื้อเพลิงสำรอง","unit":"ชิ้น","qty_initial":10.0,"qty_remaining":10.0,"daily_use":0.0,"note":"ตัวอย่าง — แก้ไขตามจริง","updated_at":"2026-10-05T11:43:16+00:00"}],"supply_log":[],"station":{"id":1,"name":"Lithium Power Station","capacity_wh":2000.0,"soc_pct":100.0,"reserve_pct":10.0,"inverter_eff":0.9,"solar_peak_w":650.0,"solar_derate":0.75,"peak_sun_hours":4.5,"updated_at":"2026-10-05T11:43:16+00:00"},"loads":[{"id":1,"name":"ชาร์จสมาร์ทโฟน (4 เครื่อง)","watts":40.0,"hours_per_day":2.0,"enabled":1,"note":"ตัวอย่าง — แก้ไขตามจริง"},{"id":2,"name":"ชาร์จแท็บเล็ต (2 เครื่อง)","watts":20.0,"hours_per_day":2.0,"enabled":1,"note":"ตัวอย่าง — แก้ไขตามจริง"},{"id":3,"name":"แล็ปท็อป (3 เครื่อง)","watts":180.0,"hours_per_day":3.0,"enabled":1,"note":"ตัวอย่าง — แก้ไขตามจริง"},{"id":4,"name":"ไฟ LED","watts":20.0,"hours_per_day":6.0,"enabled":1,"note":"ตัวอย่าง — แก้ไขตามจริง"},{"id":5,"name":"พัดลม","watts":30.0,"hours_per_day":6.0,"enabled":1,"note":"ตัวอย่าง — แก้ไขตามจริง"},{"id":6,"name":"เราเตอร์ / ฮอตสปอตพกพา","watts":10.0,"hours_per_day":6.0,"enabled":1,"note":"ตัวอย่าง — แก้ไขตามจริง"},{"id":7,"name":"PC ตั้งโต๊ะ (2 เครื่อง) — ปิดไว้เพื่อประหยัดไฟ","watts":400.0,"hours_per_day":1.0,"enabled":0,"note":"ตัวอย่าง — แก้ไขตามจริง"}],"forecast":{},"power_log":[],"devices":[{"id":1,"name":"สมาร์ทโฟน 1","kind":"phone","model":null,"role":null,"battery_pct":100,"battery_health_pct":100,"power_state":"off","note":null,"updated_at":"2026-10-05T11:43:16+00:00"},{"id":2,"name":"สมาร์ทโฟน 2","kind":"phone","model":null,"role":null,"battery_pct":100,"battery_health_pct":100,"power_state":"off","note":null,"updated_at":"2026-10-05T11:43:16+00:00"},{"id":3,"name":"สมาร์ทโฟน 3","kind":"phone","model":null,"role":null,"battery_pct":100,"battery_health_pct":100,"power_state":"off","note":null,"updated_at":"2026-10-05T11:43:16+00:00"},{"id":4,"name":"สมาร์ทโฟน 4","kind":"phone","model":null,"role":null,"battery_pct":100,"battery_health_pct":100,"power_state":"off","note":null,"updated_at":"2026-10-05T11:43:16+00:00"},{"id":5,"name":"แท็บเล็ต 1","kind":"tablet","model":null,"role":null,"battery_pct":100,"battery_health_pct":100,"power_state":"off","note":null,"updated_at":"2026-10-05T11:43:16+00:00"},{"id":6,"name":"แท็บเล็ต 2","kind":"tablet","model":null,"role":null,"battery_pct":100,"battery_health_pct":100,"power_state":"off","note":null,"updated_at":"2026-10-05T11:43:16+00:00"},{"id":7,"name":"แล็ปท็อป 1","kind":"laptop","model":null,"role":null,"battery_pct":100,"battery_health_pct":100,"power_state":"off","note":null,"updated_at":"2026-10-05T11:43:16+00:00"},{"id":8,"name":"แล็ปท็อป 2","kind":"laptop","model":null,"role":null,"battery_pct":100,"battery_health_pct":100,"power_state":"off","note":null,"updated_at":"2026-10-05T11:43:16+00:00"},{"id":9,"name":"แล็ปท็อป 3","kind":"laptop","model":null,"role":null,"battery_pct":100,"battery_health_pct":100,"power_state":"off","note":null,"updated_at":"2026-10-05T11:43:16+00:00"},{"id":10,"name":"PC 1","kind":"pc","model":null,"role":null,"battery_pct":null,"battery_health_pct":null,"power_state":"off","note":null,"updated_at":"2026-10-05T11:43:16+00:00"},{"id":11,"name":"PC 2","kind":"pc","model":null,"role":null,"battery_pct":null,"battery_health_pct":null,"power_state":"off","note":null,"updated_at":"2026-10-05T11:43:16+00:00"}],"sims":[{"id":1,"carrier":"AIS","label":"AIS-1","msisdn":null,"device_id":1,"actual_state":"off","expires_on":null,"note":null},{"id":2,"carrier":"True","label":"True-1","msisdn":null,"device_id":1,"actual_state":"off","expires_on":null,"note":null},{"id":3,"carrier":"AIS","label":"AIS-2","msisdn":null,"device_id":2,"actual_state":"off","expires_on":null,"note":null},{"id":4,"carrier":"True","label":"True-2","msisdn":null,"device_id":2,"actual_state":"off","expires_on":null,"note":null},{"id":5,"carrier":"AIS","label":"AIS-3","msisdn":null,"device_id":3,"actual_state":"off","expires_on":null,"note":null},{"id":6,"carrier":"True","label":"True-3","msisdn":null,"device_id":4,"actual_state":"off","expires_on":null,"note":null}],"schedules":[{"id":1,"kind":"sim_power","sim_id":1,"device_id":null,"start_hhmm":"07:00","end_hhmm":"07:30","days":"1111111","enabled":1},{"id":2,"kind":"sim_power","sim_id":1,"device_id":null,"start_hhmm":"13:00","end_hhmm":"13:30","days":"1111111","enabled":1},{"id":3,"kind":"sim_power","sim_id":1,"device_id":null,"start_hhmm":"19:00","end_hhmm":"19:30","days":"1111111","enabled":1},{"id":4,"kind":"sim_power","sim_id":2,"device_id":null,"start_hhmm":"07:10","end_hhmm":"07:40","days":"1111111","enabled":1},{"id":5,"kind":"sim_power","sim_id":2,"device_id":null,"start_hhmm":"13:10","end_hhmm":"13:40","days":"1111111","enabled":1},{"id":6,"kind":"sim_power","sim_id":2,"device_id":null,"start_hhmm":"19:10","end_hhmm":"19:40","days":"1111111","enabled":1},{"id":7,"kind":"sim_power","sim_id":3,"device_id":null,"start_hhmm":"07:20","end_hhmm":"07:50","days":"1111111","enabled":1},{"id":8,"kind":"sim_power","sim_id":3,"device_id":null,"start_hhmm":"13:20","end_hhmm":"13:50","days":"1111111","enabled":1},{"id":9,"kind":"sim_power","sim_id":3,"device_id":null,"start_hhmm":"19:20","end_hhmm":"19:50","days":"1111111","enabled":1},{"id":10,"kind":"sim_power","sim_id":4,"device_id":null,"start_hhmm":"07:30","end_hhmm":"08:00","days":"1111111","enabled":1},{"id":11,"kind":"sim_power","sim_id":4,"device_id":null,"start_hhmm":"13:30","end_hhmm":"14:00","days":"1111111","enabled":1},{"id":12,"kind":"sim_power","sim_id":4,"device_id":null,"start_hhmm":"19:30","end_hhmm":"20:00","days":"1111111","enabled":1},{"id":13,"kind":"sim_power","sim_id":5,"device_id":null,"start_hhmm":"07:40","end_hhmm":"08:10","days":"1111111","enabled":1},{"id":14,"kind":"sim_power","sim_id":5,"device_id":null,"start_hhmm":"13:40","end_hhmm":"14:10","days":"1111111","enabled":1},{"id":15,"kind":"sim_power","sim_id":5,"device_id":null,"start_hhmm":"19:40","end_hhmm":"20:10","days":"1111111","enabled":1},{"id":16,"kind":"sim_power","sim_id":6,"device_id":null,"start_hhmm":"07:50","end_hhmm":"08:20","days":"1111111","enabled":1},{"id":17,"kind":"sim_power","sim_id":6,"device_id":null,"start_hhmm":"13:50","end_hhmm":"14:20","days":"1111111","enabled":1},{"id":18,"kind":"sim_power","sim_id":6,"device_id":null,"start_hhmm":"19:50","end_hhmm":"20:20","days":"1111111","enabled":1},{"id":19,"kind":"hotspot","sim_id":null,"device_id":1,"start_hhmm":"07:00","end_hhmm":"07:30","days":"1111111","enabled":1},{"id":20,"kind":"hotspot","sim_id":null,"device_id":1,"start_hhmm":"13:00","end_hhmm":"13:30","days":"1111111","enabled":1},{"id":21,"kind":"hotspot","sim_id":null,"device_id":1,"start_hhmm":"19:00","end_hhmm":"19:30","days":"1111111","enabled":1}],"phases":[{"level":1,"name":"ระดับ 1 เฝ้าระวัง","flag":"yellow","summary":"ติดตามสถานการณ์ เตรียมของ ชาร์จพลังงานให้เต็ม"},{"level":2,"name":"ระดับ 2 ปฏิบัติการ / ตัดระบบ","flag":"orange","summary":"ตัดไฟ-น้ำชั้น 1 ย้ายของขึ้นชั้น 2"},{"level":3,"name":"ระดับ 3 อยู่กับที่ (Lockdown)","flag":"red","summary":"ปฏิบัติการทั้งหมดบนชั้น 2 และระเบียง"}],"items":[{"id":1,"level":1,"seq":1,"text":"ติดตามประกาศเตือนภัย/พยากรณ์ (วิทยุ, SMS, แอปที่แคชไว้) ทุก 3 ชม.","done":0,"done_at":null},{"id":2,"level":1,"seq":2,"text":"อ่านระดับน้ำหน้าบ้านและบันทึกลงบันทึกเหตุการณ์ทุก 1–2 ชม.","done":0,"done_at":null},{"id":3,"level":1,"seq":3,"text":"ชาร์จ Power Station และอุปกรณ์ทั้ง 11 ชิ้นให้เต็ม","done":0,"done_at":null},{"id":4,"level":1,"seq":4,"text":"เติมถังน้ำดาดฟ้าให้เต็ม และสำรองน้ำดื่ม","done":0,"done_at":null},{"id":5,"level":1,"seq":5,"text":"ย้ายเอกสารสำคัญ ยา อาหาร ไฟฉาย/ถ่าน ขึ้นชั้น 2","done":0,"done_at":null},{"id":6,"level":1,"seq":6,"text":"นับเสบียง (น้ำ อาหาร แก๊ส) แล้วอัปเดตในแอป","done":0,"done_at":null},{"id":7,"level":1,"seq":7,"text":"เตรียมกระสอบทราย/แผ่นกั้นน้ำ และตรวจตำแหน่งเบรกเกอร์/วาล์วน้ำ","done":0,"done_at":null},{"id":8,"level":1,"seq":8,"text":"แจ้งญาติ/เพื่อนบ้านถึงแผนติดต่อ (ตารางเปิดซิม)","done":0,"done_at":null},{"id":9,"level":2,"seq":1,"text":"ปิดเบรกเกอร์วงจรชั้น 1 ก่อนน้ำถึงปลั๊ก — ห้ามแตะเมื่อมือเปียกหรือยืนในน้ำ","done":0,"done_at":null},{"id":10,"level":2,"seq":2,"text":"ถอดปลั๊กอุปกรณ์ชั้น 1 และยกของขึ้นที่สูง","done":0,"done_at":null},{"id":11,"level":2,"seq":3,"text":"ปิดวาล์วประปาเข้าบ้าน/ชั้น 1 และเปลี่ยนไปใช้น้ำจากถังดาดฟ้า","done":0,"done_at":null},{"id":12,"level":2,"seq":4,"text":"ย้ายถังแก๊สและเตาขึ้นชั้น 2/ระเบียง","done":0,"done_at":null},{"id":13,"level":2,"seq":5,"text":"ย้ายคน สัตว์เลี้ยง ยา เอกสาร ขึ้นชั้น 2","done":0,"done_at":null},{"id":14,"level":2,"seq":6,"text":"เปิดใช้ตารางหมุนเวียนเปิด-ปิดซิม และตารางฮอตสปอต","done":0,"done_at":null},{"id":15,"level":2,"seq":7,"text":"ติดตั้งส้วมแห้งและเตรียมปูนขาว/ขี้เลื่อย/ถุงหนา","done":0,"done_at":null},{"id":16,"level":2,"seq":8,"text":"บันทึกเวลาที่ตัดไฟ/ตัดน้ำลงบันทึกเหตุการณ์","done":0,"done_at":null},{"id":17,"level":3,"seq":1,"text":"ย้ายปฏิบัติการทั้งหมดไปชั้น 2 และระเบียง","done":0,"done_at":null},{"id":18,"level":3,"seq":2,"text":"เข้าโหมดประหยัดพลังงาน: ปิด PC ใช้แล็ปท็อป/มือถือเท่านั้น","done":0,"done_at":null},{"id":19,"level":3,"seq":3,"text":"ครัวระเบียง: ใช้เตาแก๊สในที่โล่ง ระบายอากาศดี ห้ามใช้ในห้องปิด","done":0,"done_at":null},{"id":20,"level":3,"seq":4,"text":"ใช้ส้วมแห้ง + ปูนขาว/ขี้เลื่อย ปิดถุงสองชั้นทุกครั้ง","done":0,"done_at":null},{"id":21,"level":3,"seq":5,"text":"ต้ม/กรอง/ฆ่าเชื้อน้ำก่อนดื่มทุกครั้ง","done":0,"done_at":null},{"id":22,"level":3,"seq":6,"text":"ตรวจสุขภาพสมาชิกและยาประจำตัว เช้า–เย็น","done":0,"done_at":null},{"id":23,"level":3,"seq":7,"text":"ติดต่อสื่อสารตามรอบซิม แจ้งพิกัดและสถานะ","done":0,"done_at":null},{"id":24,"level":3,"seq":8,"text":"เฝ้าระวังระดับน้ำ เตรียมแผนฉุกเฉิน (1669 / 1784) หากสถานการณ์เลวลง","done":0,"done_at":null}],"events":[{"id":1,"ts":"2026-10-05T11:43:16+00:00","kind":"note","value":null,"unit":null,"text":"เริ่มใช้งาน Off Road","author":"system"}],"kb":[{"id":1,"path":"contacts/hatyai_emergency_contacts.md","title":"เบอร์ฉุกเฉินและจุดอพยพ (หาดใหญ่)","kind":"md","category":"contacts","content":"# เบอร์ฉุกเฉินและจุดอพยพ (หาดใหญ่)\n\n## เบอร์ระดับประเทศ\n| หน่วยงาน | เบอร์ |\n|---|---|\n| การแพทย์ฉุกเฉิน | **1669** |\n| ตำรวจ | **191** |\n| แจ้งเหตุเพลิงไหม้ | **199** |\n| สายด่วนนิรภัย กรมป้องกันและบรรเทาสาธารณภัย | **1784** |\n\n## เบอร์ท้องถิ่น (กรอกเอง)\n| หน่วยงาน | เบอร์ |\n|---|---|\n| เทศบาลนครหาดใหญ่ | (กรอก) |\n| โรงพยาบาลใกล้บ้าน | (กรอก) |\n| ผู้นำชุมชน / เพื่อนบ้าน | (กรอก) |\n| ญาติ | (กรอก) |\n\n## จุดอพยพ / แผนที่\n- จุดอพยพหลัก: (กรอก)\n- เส้นทางสำรอง: (กรอก)\n- เก็บภาพแผนที่ออฟไลน์ (PDF/รูป) ไว้ในโฟลเดอร์นี้ได้\n"},{"id":2,"path":"infrastructure/electrical_breaker_map.md","title":"แผนผังไฟฟ้า / เบรกเกอร์","kind":"md","category":"infrastructure","content":"# แผนผังไฟฟ้า / เบรกเกอร์\n\n> เทมเพลต: เติมให้ตรงกับบ้านจริง และติดป้ายที่ตู้เบรกเกอร์ด้วย\n\n## ลำดับการตัดไฟ (เฟส 2)\n1. ปิดเบรกเกอร์ย่อยของวงจร **ชั้น 1** ทั้งหมด (ปลั๊ก, แอร์, เครื่องทำน้ำอุ่น)\n2. ปิดเมนเบรกเกอร์ถ้าน้ำใกล้ถึงระดับปลั๊ก/มิเตอร์\n3. ถอดปลั๊กอุปกรณ์ชั้น 1 และยกขึ้นที่สูง\n4. บันทึกเวลาที่ตัดไฟในบันทึกเหตุการณ์\n\n> ⚠ ห้ามแตะสวิตช์/เบรกเกอร์เมื่อมือเปียกหรือยืนในน้ำ — ถ้าตัดไม่ทันและน้ำท่วมแล้ว ห้ามลุยเข้าไปตัด\n\n## ตารางวงจร\n| เบรกเกอร์ | วงจร | ชั้น | ตัดในเฟส |\n|---|---|---|---|\n| (กรอก) | ปลั๊กห้องนั่งเล่น | 1 | 2 |\n| (กรอก) | ปลั๊กห้องนอน | 2 | — |\n\n## Power Station + โซลาร์ (ชั้น 2)\n- Power Station 2 kWh · แผงโซลาร์ 650 W\n- จ่ายไฟแยกจากระบบบ้าน ห้ามต่อย้อนเข้าสายบ้าน\n"},{"id":3,"path":"infrastructure/water_tank_piping.md","title":"ถังน้ำดาดฟ้า & ท่อ Gravity-feed","kind":"md","category":"infrastructure","content":"# ถังน้ำดาดฟ้า & ท่อ Gravity-feed\n\n## แนวทาง\n- ถังบนดาดฟ้าส่งน้ำลงสู่ชั้น 2 ด้วยแรงโน้มถ่วง ไม่ต้องใช้ปั๊มไฟฟ้า\n- ก่อนน้ำท่วม: **ปิดวาล์วท่อชั้น 1** เพื่อกันน้ำปนเปื้อนไหลย้อน\n\n## ตำแหน่งวาล์ว (กรอก)\n| วาล์ว | ตำแหน่ง | หน้าที่ |\n|---|---|---|\n| V1 | (กรอก) | ประปาเข้าบ้าน |\n| V2 | (กรอก) | ท่อชั้น 1 |\n| V3 | (กรอก) | ถัง → ชั้น 2 |\n\n## การใช้น้ำ\n1. น้ำจากถัง = น้ำใช้ (ล้าง/ชำระ) ต้อง **ต้ม/กรอง** ก่อนดื่ม\n2. น้ำดื่มใช้ขวดสำรองก่อน\n3. ปิดฝาถัง กันยุงและสิ่งสกปรก\n"},{"id":4,"path":"medical/medical_checklist.md","title":"Emergency First Aid & Medication Checklist","kind":"md","category":"medical","content":"# Emergency First Aid & Medication Checklist\n\n> ⚠ เอกสารตัวอย่าง (เทมเพลต) — รายการยาและขนาดยาให้ปรึกษาแพทย์/เภสัชกรก่อน แล้วกรอกให้ตรงกับสมาชิกในบ้านจริง\n> ฉุกเฉินทางการแพทย์โทร **1669** (ถ้ามีสัญญาณ)\n\n## ชุดปฐมพยาบาล\n- [ ] ผ้าก๊อซ / ผ้าพันแผล / พลาสเตอร์\n- [ ] น้ำยาล้างแผล / แอลกอฮอล์ / เบตาดีน\n- [ ] ถุงมือยาง หน้ากากอนามัย\n- [ ] เทอร์โมมิเตอร์ ไฟฉายคาดหัว\n- [ ] เกลือแร่ ORS\n- [ ] ครีมแก้แพ้/กันยุง ครีมทาผิวหนังจากการแช่น้ำ\n\n## ยาประจำตัวของสมาชิก\n| สมาชิก | โรคประจำตัว / ยา | จำนวนวันที่มี | หมายเหตุ |\n|---|---|---|---|\n| (กรอก) | | | |\n\n## สัญญาณอันตราย — ต้องขอความช่วยเหลือ\n- ไข้สูงต่อเนื่อง ซึม สับสน\n- ท้องเสียรุนแรง/ขาดน้ำ\n- แผลบวมแดงร้อน มีหนอง (ติดเชื้อจากน้ำท่วม)\n- หายใจลำบาก เจ็บหน้าอก\n"},{"id":5,"path":"medical/pharmacy_order_list.md","title":"Pharmacy Order List (รายการยา/เวชภัณฑ์ที่ต้องเตรียม)","kind":"md","category":"medical","content":"# Pharmacy Order List (รายการยา/เวชภัณฑ์ที่ต้องเตรียม)\n\n> เทมเพลต: กรอกชื่อยาตามที่แพทย์/เภสัชกรแนะนำ\n\n| รายการ | จำนวน | จำเป็นระดับ | สั่งแล้ว |\n|---|---|---|---|\n| ORS ผงเกลือแร่ | (กรอก) | สูง | ☐ |\n| ยาประจำตัวสมาชิก (สำรอง 14 วัน) | (กรอก) | สูง | ☐ |\n| ชุดทำแผล | (กรอก) | สูง | ☐ |\n| เม็ด/น้ำยาฆ่าเชื้อน้ำ | (กรอก) | สูง | ☐ |\n| ยากันยุง / ทากันแมลง | (กรอก) | กลาง | ☐ |\n"},{"id":6,"path":"sanitation/urban_bushcraft_sanitation.md","title":"สุขาภิบาลและการอยู่รอดในเมือง","kind":"md","category":"sanitation","content":"# สุขาภิบาลและการอยู่รอดในเมือง\n\n## ส้วมแห้ง (Dry Latrine)\n1. ตั้งที่นั่งไม้อัด/ถังพลาสติก วางถุงหนา **สองชั้น** ในถัง\n2. หลังใช้ทุกครั้งโรย **ปูนขาวหรือขี้เลื่อย** ให้คลุมของเสีย\n3. เมื่อถุงเต็ม 2/3 รัดปากแน่น 2 ชั้น เก็บในถังมีฝาปิดไว้ที่ระเบียง ห่างอาหาร/น้ำ\n4. ล้างมือด้วยสบู่หรือเจลแอลกอฮอล์ทุกครั้ง\n5. บันทึกจำนวนถุงที่เก็บไว้ในบันทึกเหตุการณ์\n\n## ทำน้ำดื่มให้ปลอดภัย\n1. ปล่อยให้ตะกอนตก/กรองผ่านผ้าสะอาด\n2. **ต้มให้เดือดพล่านอย่างน้อย 1 นาที** (ใช้แก๊สประหยัด: ต้มครั้งละมาก ๆ)\n3. หรือใช้เม็ด/น้ำยาฆ่าเชื้อตามฉลากของผู้ผลิต\n4. เก็บในภาชนะสะอาดมีฝาปิด\n\n## ครัวระเบียง\n- ใช้เตาแก๊สพกพาในที่โล่ง ระบายอากาศดี ห้ามใช้ในห้องปิด\n- ปิดวาล์วแก๊สทุกครั้งหลังใช้ เก็บกระป๋องแก๊สห่างความร้อน\n"}],"next":{"supplies":7,"loads":7,"devices":11,"sims":6,"schedules":21,"items":24,"events":1,"kb":6,"supply_log":0,"power_log":0}};
+</script>
+<script>
+'use strict';
+/* โหมดไฟล์เดียว: แทนที่เซิร์ฟเวอร์ Python ด้วย "แบ็กเอนด์ในเบราว์เซอร์"
+ * ข้อมูลทั้งหมดเก็บเป็น JSON ก้อนเดียวใน localStorage (ตรรกะพอร์ตมาจาก offroad/calc.py, services.py, server.py)
+ * ข้อมูลตั้งต้น window.OFFROAD_SEED ถูกสร้างจาก offroad/seed.py ตอน build (scripts/build_single_html.py) */
+(() => {
+  window.OFFROAD_LOCAL = true;
+  const KEY = 'offroad.v1';
+  let db, persistOK = true;
+
+  // ───────────── storage ─────────────
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify(db)); persistOK = true; } catch { persistOK = false; }
+    status();
+  }
+  function load() {
+    try { const raw = localStorage.getItem(KEY); if (raw) { db = JSON.parse(raw); return; } } catch { persistOK = false; }
+    db = JSON.parse(JSON.stringify(window.OFFROAD_SEED));
+    persist();
+  }
+  load();
+  window.addEventListener('storage', e => { if (e.key === KEY && e.newValue) db = JSON.parse(e.newValue); });  // แท็บอื่นแก้ไข
+
+  const nid = t => (db.next[t] = (db.next[t] || 0) + 1);
+  const nowIso = () => new Date().toISOString();
+  const err = (code) => { const e = new Error(code); throw e; };
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const pad = n => String(n).padStart(2, '0');
+  const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const isoMin = d => d ? `${ymd(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}` : null;
+  const setting = (k, def) => (db.settings[k] ?? def);
+
+  // ───────────── validation (เทียบเท่า CHECK ใน schema.sql) ─────────────
+  const ENUM = {
+    category: ['water', 'food', 'gas', 'fuel'], kind_dev: ['phone', 'tablet', 'laptop', 'pc'],
+    power_state: ['on', 'off', 'charging', 'standby'], actual_state: ['on', 'off'], carrier: ['AIS', 'True'],
+    condition: ['sunny', 'partly', 'cloudy', 'rain', 'storm'], kind_sched: ['sim_power', 'hotspot'],
+    kind_ev: ['water_gate', 'water_indoor', 'breaker', 'solar', 'power', 'supply', 'health', 'comms', 'note'],
+  };
+  const RANGE = { soc_pct: [0, 100], reserve_pct: [0, 100], inverter_eff: [0.3, 1], solar_derate: [0, 1], battery_pct: [0, 100],
+    battery_health_pct: [0, 100], hours_per_day: [0, 24], qty_initial: [0, 1e12], qty_remaining: [0, 1e12], daily_use: [0, 1e12],
+    watts: [0, 1e12], solar_peak_w: [0, 1e12], peak_sun_hours: [0, 24], capacity_wh: [1e-9, 1e12] };
+  const TIME = /^[0-2]\d:[0-5]\d$/, DAYS = /^[01]{7}$/;
+
+  // spec: field -> 'str' | 'str?' | 'float' | 'int?' | 'bool' | ['enum', รายการค่าที่ยอมรับ]
+  function P(body, spec) {
+    const out = {};
+    for (const [k, t] of Object.entries(spec)) {
+      if (!(k in body)) continue;
+      let v = body[k];
+      if (t === 'str') v = String(v ?? '').trim();
+      else if (t === 'str?') v = (v === null || v === '') ? null : String(v).trim();
+      else if (t === 'bool') v = (v === true || v === 1 || v === '1' || v === 'true') ? 1 : 0;
+      else if (t === 'float' || t === 'int?') {
+        if (t === 'int?' && (v === null || v === '')) v = null;
+        else { v = Number(v); if (!Number.isFinite(v)) err('bad_number'); if (t === 'int?') v = Math.trunc(v); }
+      } else if (Array.isArray(t) && !t[1].includes(v)) err('constraint_failed');
+      if (RANGE[k] && v !== null && (v < RANGE[k][0] || v > RANGE[k][1])) err('constraint_failed');
+      if ((k === 'start_hhmm' || k === 'end_hhmm') && !TIME.test(v)) err('constraint_failed');
+      if (k === 'days' && !DAYS.test(v)) err('constraint_failed');
+      out[k] = v;
+    }
+    return out;
+  }
+  const SPEC = {
+    supply: { category: ['enum', ENUM.category], name: 'str', unit: 'str', qty_initial: 'float', qty_remaining: 'float', daily_use: 'float', note: 'str?' },
+    station: { name: 'str', capacity_wh: 'float', soc_pct: 'float', reserve_pct: 'float', inverter_eff: 'float', solar_peak_w: 'float', solar_derate: 'float', peak_sun_hours: 'float' },
+    load: { name: 'str', watts: 'float', hours_per_day: 'float', enabled: 'bool', note: 'str?' },
+    device: { name: 'str', kind: ['enum', ENUM.kind_dev], model: 'str?', role: 'str?', battery_pct: 'int?', battery_health_pct: 'int?', power_state: ['enum', ENUM.power_state], note: 'str?' },
+    sim: { carrier: ['enum', ENUM.carrier], label: 'str', msisdn: 'str?', device_id: 'int?', actual_state: ['enum', ENUM.actual_state], expires_on: 'str?', note: 'str?' },
+    sched: { kind: ['enum', ENUM.kind_sched], sim_id: 'int?', device_id: 'int?', start_hhmm: 'str', end_hhmm: 'str', days: 'str', enabled: 'bool' },
+  };
+  const findIn = (arr, id) => arr.find(x => x.id === id) || err('not_found');
+  const del = (arr, id) => { const i = arr.findIndex(x => x.id === id); if (i < 0) err('not_found'); arr.splice(i, 1); return { ok: true }; };
+  function mustRows(vals, req) { for (const k of req) if (vals[k] == null || vals[k] === '') err(`missing_${k}`); }
+
+  // ───────────── calc (พอร์ตจาก calc.py) ─────────────
+  const FACTOR = { sunny: 1.0, partly: 0.6, cloudy: 0.3, rain: 0.15, storm: 0.05 };
+
+  function summarizeSupplies(rows, warn, crit) {
+    const cats = {};
+    for (const r of rows) {
+      const c = cats[r.category] || (cats[r.category] = { category: r.category, items: [], days: null });
+      const it = { ...r, days: r.daily_use > 0 ? r.qty_remaining / r.daily_use : null,
+        pct: r.qty_initial > 0 ? Math.min(100, 100 * r.qty_remaining / r.qty_initial) : null };
+      c.items.push(it);
+      if (it.days != null) c.days = (c.days || 0) + it.days;
+    }
+    return Object.values(cats).map(c => ({ ...c, status: c.days == null ? 'unknown' : c.days < crit ? 'crit' : c.days < warn ? 'warn' : 'ok' }));
+  }
+  const solarWh = (st, cond) => st.solar_peak_w * st.solar_derate * st.peak_sun_hours * (FACTOR[cond] ?? FACTOR.cloudy);
+  const dailyLoad = loads => loads.reduce((a, l) => a + (l.enabled ? l.watts * l.hours_per_day : 0), 0);
+
+  function simulatePower(st, loads, forecast, today, def, horizon = 14) {
+    const cap = st.capacity_wh, reserve = cap * st.reserve_pct / 100, stored = cap * st.soc_pct / 100;
+    const load = dailyLoad(loads), burn = load / st.inverter_eff;
+    let energy = stored, remaining = null; const days = [];
+    for (let i = 0; i < horizon; i++) {
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i), day = ymd(d);
+      const cond = forecast[day] || def, sol = solarWh(st, cond), start = energy;
+      energy = Math.min(cap, energy + sol - burn);
+      days.push({ day, condition: cond, solar_wh: Math.round(sol), burn_wh: Math.round(burn), end_wh: Math.round(Math.max(energy, 0)),
+        end_pct: Math.round(Math.max(energy, 0) / cap * 1000) / 10 });
+      if (remaining === null && energy <= reserve) {
+        const net = sol - burn, frac = (net < 0 && start > reserve) ? (start - reserve) / -net : 0;
+        remaining = i + Math.max(0, Math.min(1, frac));
+        energy = Math.max(energy, 0);
+      }
+    }
+    return { stored_wh: Math.round(stored), reserve_wh: Math.round(reserve), load_wh_day: Math.round(load), burn_wh_day: Math.round(burn),
+      days, days_remaining: remaining, sustainable: remaining === null };
+  }
+
+  const mins = s => { const [h, m] = s.split(':'); return +h * 60 + +m; };
+  function windowState(windows, now = new Date()) {
+    const ws = windows.filter(w => w.enabled), spans = [];
+    for (let off = -1; off < 8; off++) {
+      const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + off), wd = (day.getDay() + 6) % 7;   // จันทร์ = 0
+      for (const w of ws) {
+        if (w.days[wd] !== '1') continue;
+        const s = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, mins(w.start_hhmm));
+        let e = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, mins(w.end_hhmm));
+        if (e <= s) e = new Date(e.getFullYear(), e.getMonth(), e.getDate() + 1, e.getHours(), e.getMinutes());
+        spans.push([s, e]);
+      }
+    }
+    spans.sort((a, b) => a[0] - b[0]);
+    const merged = [];
+    for (const [s, e] of spans) {
+      if (merged.length && s <= merged[merged.length - 1][1]) { const m = merged[merged.length - 1]; if (e > m[1]) m[1] = e; }
+      else merged.push([s, e]);
+    }
+    for (const [s, e] of merged) if (s <= now && now < e) return { active: true, next_change: e, has_schedule: true };
+    const future = merged.map(m => m[0]).filter(s => s > now);
+    return { active: false, next_change: future.length ? future[0] : null, has_schedule: ws.length > 0 };
+  }
+
+  // ───────────── services (พอร์ตจาก services.py) ─────────────
+  const CAT_ORDER = { water: 0, food: 1, gas: 2, fuel: 3 };
+  function suppliesOverview() {
+    const rows = clone(db.supplies).sort((a, b) => CAT_ORDER[a.category] - CAT_ORDER[b.category] || a.id - b.id);
+    return summarizeSupplies(rows, +setting('warn_days', 7), +setting('crit_days', 3));
+  }
+  function powerOverview(horizon = 14) {
+    const today = new Date(), todayS = ymd(today);
+    const forecast = {};
+    for (const [d, c] of Object.entries(db.forecast)) if (d >= todayS) forecast[d] = c;
+    const def = setting('solar_default_condition', 'partly');
+    const out = simulatePower(db.station, db.loads, forecast, today, def, horizon);
+    return { ...out, station: clone(db.station), loads: clone(db.loads), default_condition: def, forecast_days: forecast };
+  }
+  function fleetOverview() {
+    const devices = clone(db.devices).sort((a, b) => a.id - b.id);
+    for (const d of devices) d.sims = db.sims.filter(s => s.device_id === d.id).map(s => s.label);
+    const by = {}; for (const d of devices) by[d.kind] = (by[d.kind] || 0) + 1;
+    return { devices, total: devices.length, by_kind: by,
+      low_battery: devices.filter(d => d.battery_pct != null && d.battery_pct < 30 && d.power_state !== 'charging'),
+      powered_on: devices.filter(d => d.power_state === 'on' || d.power_state === 'charging').length };
+  }
+  function simsOverview(now = new Date()) {
+    const sims = clone(db.sims).sort((a, b) => a.id - b.id);
+    const scheds = clone(db.schedules).sort((a, b) => a.start_hhmm.localeCompare(b.start_hhmm) || a.id - b.id);
+    for (const s of sims) {
+      const ws = scheds.filter(w => w.kind === 'sim_power' && w.sim_id === s.id), st = windowState(ws, now);
+      s.device_name = db.devices.find(d => d.id === s.device_id)?.name ?? null;
+      Object.assign(s, { schedule_count: ws.length, scheduled_on: st.active, next_change: isoMin(st.next_change), has_schedule: st.has_schedule,
+        mismatch: st.has_schedule && st.active !== (s.actual_state === 'on') });
+    }
+    const hotspots = [];
+    for (const dev of db.devices) {
+      const ws = scheds.filter(w => w.kind === 'hotspot' && w.device_id === dev.id);
+      if (ws.length) { const st = windowState(ws, now); hotspots.push({ device_id: dev.id, device_name: dev.name, active: st.active, next_change: isoMin(st.next_change) }); }
+    }
+    return { sims, hotspots, schedules: scheds };
+  }
+  function checklistsOverview() {
+    const phases = clone(db.phases).sort((a, b) => a.level - b.level);
+    for (const p of phases) {
+      p.items = db.items.filter(i => i.level === p.level).sort((a, b) => a.seq - b.seq || a.id - b.id).map(clone);
+      p.done = p.items.filter(i => i.done).length; p.total = p.items.length;
+    }
+    return { active: +setting('active_phase', 1), phases };
+  }
+  const sortedEvents = () => [...db.events].sort((a, b) => (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : b.id - a.id));
+  const latestEvent = kind => { const e = sortedEvents().find(x => x.kind === kind && x.value != null); return e ? { ts: e.ts, value: e.value, unit: e.unit, text: e.text } : null; };
+
+  function dashboard() {
+    const chk = checklistsOverview(), active = chk.phases.find(p => p.level === chk.active), power = powerOverview(7);
+    const fleet = fleetOverview(), so = simsOverview();
+    const nexts = so.sims.map(s => s.next_change).filter(Boolean).sort();
+    return {
+      now: new Date().toISOString(),
+      phase: { level: active.level, name: active.name, flag: active.flag, summary: active.summary, done: active.done, total: active.total },
+      supplies: suppliesOverview(),
+      power: { stored_wh: power.stored_wh, load_wh_day: power.load_wh_day, burn_wh_day: power.burn_wh_day, days: power.days,
+        days_remaining: power.days_remaining, sustainable: power.sustainable, soc_pct: power.station.soc_pct, capacity_wh: power.station.capacity_wh },
+      fleet: { total: fleet.total, by_kind: fleet.by_kind, low_battery: fleet.low_battery, powered_on: fleet.powered_on },
+      sims: { on_now: so.sims.filter(s => s.scheduled_on).map(s => s.label), actual_on: so.sims.filter(s => s.actual_state === 'on').map(s => s.label),
+        mismatch: so.sims.filter(s => s.mismatch).map(s => s.label), next_change: nexts[0] || null, hotspots: so.hotspots },
+      water: { gate: latestEvent('water_gate'), indoor: latestEvent('water_indoor') },
+      events: sortedEvents().slice(0, 8).map(clone),
+    };
+  }
+
+  // ───────────── knowledge base ─────────────
+  const MO = '\x02', MC = '\x03';
+  const kbMeta = d => ({ id: d.id, path: d.path, title: d.title, kind: d.kind, category: d.category, size: (d.content || '').length });
+  function kbTitle(content, path) { const m = /^#\s+(.+)$/m.exec(content); return m ? m[1].trim() : path.split('/').pop().replace(/\.[^.]+$/, '').replace(/_/g, ' '); }
+  function kbList() { return db.kb.map(kbMeta).sort((a, b) => a.category.localeCompare(b.category, 'th') || a.title.localeCompare(b.title, 'th')); }
+  function kbSearch(q) {
+    const terms = q.trim().split(/\s+/).filter(Boolean).map(t => t.toLowerCase());
+    if (!terms.length) return [];
+    const out = [];
+    for (const d of db.kb) {
+      const text = d.kind === 'html' ? d.content.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<[^>]+>/g, ' ') : d.content;
+      const hay = (d.title + '\n' + text).toLowerCase();
+      if (!terms.every(t => hay.includes(t))) continue;
+      const lower = text.toLowerCase(), pos = Math.min(...terms.map(t => lower.indexOf(t)).filter(p => p >= 0), Infinity);
+      let snip = '';
+      if (Number.isFinite(pos)) {
+        snip = text.slice(Math.max(0, pos - 60), pos + 120).replace(/\s+/g, ' ');
+        for (const t of terms) snip = snip.replace(new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), m => MO + m + MC);
+        snip = (pos > 60 ? '…' : '') + snip + '…';
+      }
+      out.push({ ...kbMeta(d), snip });
+      if (out.length >= 30) break;
+    }
+    return out;
+  }
+
+  // ───────────── router (พอร์ตจาก server.py) ─────────────
+  const R = [];
+  const route = (m, p, fn) => R.push([m, new RegExp('^' + p + '$'), fn]);
+  const ID = m => +m[1];
+
+  route('GET', '/api/meta', () => ({ now: new Date().toISOString(), fts_tokenizer: 'js', lan_urls: [],
+    note: 'โหมดไฟล์เดียว: ข้อมูลถูกเก็บไว้ในเบราว์เซอร์เครื่องนี้ (localStorage) ไม่ส่งออกไปไหน — ใช้ปุ่ม “สำรองข้อมูล” ที่เมนูซ้ายเป็นระยะ เพราะการล้างข้อมูลเบราว์เซอร์จะลบข้อมูลนี้' }));
+  route('GET', '/api/dashboard', () => dashboard());
+
+  route('GET', '/api/supplies', () => suppliesOverview());
+  route('POST', '/api/supplies', (m, q, b) => {
+    b = { ...b }; if (!('qty_remaining' in b)) b.qty_remaining = b.qty_initial ?? 0;
+    const v = P(b, SPEC.supply); mustRows(v, ['name', 'category', 'unit']);
+    const row = { id: nid('supplies'), qty_initial: 0, qty_remaining: 0, daily_use: 0, note: null, ...v, updated_at: nowIso() };
+    db.supplies.push(row); return { id: row.id };
+  });
+  route('PUT', '/api/supplies/(\\d+)', (m, q, b) => { const v = P(b, SPEC.supply); if (!Object.keys(v).length) err('no_fields'); Object.assign(findIn(db.supplies, ID(m)), v, { updated_at: nowIso() }); return { ok: true }; });
+  route('DELETE', '/api/supplies/(\\d+)', m => del(db.supplies, ID(m)));
+  route('POST', '/api/supplies/(\\d+)/adjust', (m, q, b) => {
+    const s = findIn(db.supplies, ID(m)), delta = Number(b.delta);
+    if (!Number.isFinite(delta)) err('bad_number');
+    const nv = Math.max(0, s.qty_remaining + delta);
+    db.supply_log.push({ id: nid('supply_log'), supply_id: s.id, ts: nowIso(), delta: nv - s.qty_remaining, note: String(b.note || '').slice(0, 200) });
+    s.qty_remaining = nv; s.updated_at = nowIso(); return { qty_remaining: nv };
+  });
+
+  route('GET', '/api/power', () => powerOverview());
+  route('PUT', '/api/power/station', (m, q, b) => {
+    const v = P(b, SPEC.station);
+    if ('default_condition' in b) { if (!ENUM.condition.includes(b.default_condition)) err('bad_condition'); db.settings.solar_default_condition = b.default_condition; }
+    if (Object.keys(v).length) {
+      Object.assign(db.station, v, { updated_at: nowIso() });
+      if ('soc_pct' in v) db.power_log.push({ id: nid('power_log'), ts: nowIso(), soc_pct: v.soc_pct, note: String(b.note || '').slice(0, 200) });
+    }
+    return { ok: true };
+  });
+  route('POST', '/api/power/loads', (m, q, b) => { const v = P(b, SPEC.load); mustRows(v, ['name']); const row = { id: nid('loads'), enabled: 1, note: null, ...v }; db.loads.push(row); return { id: row.id }; });
+  route('PUT', '/api/power/loads/(\\d+)', (m, q, b) => { const v = P(b, SPEC.load); if (!Object.keys(v).length) err('no_fields'); Object.assign(findIn(db.loads, ID(m)), v); return { ok: true }; });
+  route('DELETE', '/api/power/loads/(\\d+)', m => del(db.loads, ID(m)));
+  route('PUT', '/api/power/forecast', (m, q, b) => {
+    const day = String(b.day || '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) err('bad_day');
+    if (b.condition == null || b.condition === '' || b.condition === 'default') delete db.forecast[day];
+    else { if (!ENUM.condition.includes(b.condition)) err('constraint_failed'); db.forecast[day] = b.condition; }
+    return { ok: true };
+  });
+
+  route('GET', '/api/devices', () => fleetOverview());
+  route('POST', '/api/devices', (m, q, b) => { const v = P(b, SPEC.device); mustRows(v, ['name', 'kind']); const row = { id: nid('devices'), power_state: 'off', battery_pct: null, battery_health_pct: null, ...v, updated_at: nowIso() }; db.devices.push(row); return { id: row.id }; });
+  route('PUT', '/api/devices/(\\d+)', (m, q, b) => { const v = P(b, SPEC.device); if (!Object.keys(v).length) err('no_fields'); Object.assign(findIn(db.devices, ID(m)), v, { updated_at: nowIso() }); return { ok: true }; });
+  route('DELETE', '/api/devices/(\\d+)', m => {
+    const id = ID(m); del(db.devices, id);
+    db.sims.forEach(s => { if (s.device_id === id) s.device_id = null; });          // ON DELETE SET NULL
+    db.schedules = db.schedules.filter(w => w.device_id !== id);                      // ON DELETE CASCADE
+    return { ok: true };
+  });
+  route('GET', '/api/sims', () => simsOverview());
+  route('POST', '/api/sims', (m, q, b) => { const v = P(b, SPEC.sim); mustRows(v, ['label', 'carrier']); const row = { id: nid('sims'), actual_state: 'off', device_id: null, ...v }; db.sims.push(row); return { id: row.id }; });
+  route('PUT', '/api/sims/(\\d+)', (m, q, b) => { const v = P(b, SPEC.sim); if (!Object.keys(v).length) err('no_fields'); Object.assign(findIn(db.sims, ID(m)), v); return { ok: true }; });
+  route('DELETE', '/api/sims/(\\d+)', m => { const id = ID(m); del(db.sims, id); db.schedules = db.schedules.filter(w => w.sim_id !== id); return { ok: true }; });
+  const checkSched = r => { if (!((r.kind === 'sim_power' && r.sim_id != null) || (r.kind === 'hotspot' && r.device_id != null))) err('constraint_failed'); };
+  route('POST', '/api/schedules', (m, q, b) => {
+    const v = P(b, SPEC.sched); mustRows(v, ['kind', 'start_hhmm', 'end_hhmm']);
+    const row = { id: nid('schedules'), sim_id: null, device_id: null, days: '1111111', enabled: 1, ...v }; checkSched(row);
+    db.schedules.push(row); return { id: row.id };
+  });
+  route('PUT', '/api/schedules/(\\d+)', (m, q, b) => { const v = P(b, SPEC.sched); if (!Object.keys(v).length) err('no_fields'); const r = findIn(db.schedules, ID(m)); const next = { ...r, ...v }; checkSched(next); Object.assign(r, v); return { ok: true }; });
+  route('DELETE', '/api/schedules/(\\d+)', m => del(db.schedules, ID(m)));
+
+  route('GET', '/api/kb', () => kbList());
+  route('GET', '/api/kb/search', (m, q) => kbSearch(q.q || ''));
+  route('POST', '/api/kb/reindex', () => ({ added: 0, updated: 0, removed: 0, total: db.kb.length }));
+  route('GET', '/api/kb/doc', (m, q) => {
+    const d = db.kb.find(x => x.path === q.path) || err('not_found');
+    const out = { path: d.path, kind: d.kind, title: d.title };
+    if (d.kind === 'html') out.srcdoc = d.content; else out.content = d.content;
+    return out;
+  });
+
+  route('GET', '/api/events', (m, q) => {
+    const limit = Math.min(+q.limit || 100, 1000);
+    return sortedEvents().filter(e => !q.kind || e.kind === q.kind).slice(0, limit).map(clone);
+  });
+  route('POST', '/api/events', (m, q, b) => {
+    const kind = String(b.kind || 'note'); if (!ENUM.kind_ev.includes(kind)) err('constraint_failed');
+    const row = { id: nid('events'), ts: String(b.ts || nowIso()), kind, value: null, unit: null, text: null, author: null };
+    if (b.value !== undefined && b.value !== '' && b.value !== null) { row.value = Number(b.value); if (!Number.isFinite(row.value)) err('bad_number'); }
+    for (const k of ['unit', 'text', 'author']) if (b[k]) row[k] = String(b[k]).slice(0, 500);
+    db.events.push(row); return { id: row.id };
+  });
+  route('DELETE', '/api/events/(\\d+)', m => del(db.events, ID(m)));
+
+  route('GET', '/api/checklists', () => checklistsOverview());
+  route('PUT', '/api/phase', (m, q, b) => {
+    const p = db.phases.find(x => x.level === Number(b.level)) || err('bad_level');
+    db.settings.active_phase = String(p.level);
+    db.events.push({ id: nid('events'), ts: nowIso(), kind: 'note', value: null, unit: null, text: `เปลี่ยนเฟสเป็น ${p.name}`, author: 'system' });
+    return { ok: true };
+  });
+  route('POST', '/api/checklists/items/(\\d+)/toggle', m => { const i = findIn(db.items, ID(m)); i.done = i.done ? 0 : 1; i.done_at = i.done ? nowIso() : null; return { done: i.done }; });
+  route('POST', '/api/checklists/items', (m, q, b) => {
+    const level = Number(b.level), text = String(b.text || '').trim();
+    if (!text) err('missing_text'); if (!db.phases.some(p => p.level === level)) err('bad_level');
+    const seq = Math.max(0, ...db.items.filter(i => i.level === level).map(i => i.seq)) + 1;
+    const row = { id: nid('items'), level, seq, text, done: 0, done_at: null }; db.items.push(row); return { id: row.id };
+  });
+  route('DELETE', '/api/checklists/items/(\\d+)', m => del(db.items, ID(m)));
+  route('POST', '/api/checklists/(\\d)/reset', m => { db.items.forEach(i => { if (i.level === ID(m)) { i.done = 0; i.done_at = null; } }); return { ok: true }; });
+
+  window.OFFROAD_API = async (path, method = 'GET', body) => {
+    const url = new URL(path, 'http://x'), q = Object.fromEntries(url.searchParams);
+    for (const [m, rx, fn] of R) {
+      if (m !== method) continue;
+      const match = rx.exec(url.pathname);
+      if (!match) continue;
+      const snapshot = method === 'GET' ? null : JSON.stringify(db);
+      try {
+        const out = fn(match, q, body || {});
+        if (method !== 'GET') persist();
+        return clone(out);
+      } catch (e) {
+        if (snapshot) db = JSON.parse(snapshot);                     // rollback เหมือน transaction ของ SQLite
+        throw e;
+      }
+    }
+    err('not_found');
+  };
+
+  // ───────────── เครื่องมือเสริมของโหมดไฟล์เดียว: คลังความรู้ + สำรอง/นำเข้า ─────────────
+  const KB_EXT = { md: 'md', markdown: 'md', txt: 'txt', html: 'html', htm: 'html' };
+  window.OFFROAD_KB_TOOLS = `<div class="kbtools"><button class="sm" data-local="kb-new">＋ สร้างเอกสาร<\/button>
+    <button class="sm" data-local="kb-import">📥 นำเข้าไฟล์ (.md .txt .html)<\/button><\/div>`;
+  window.OFFROAD_DOC_TOOLS = (path, kind) => `<div class="kbtools" style="margin:0 0 10px">
+    ${kind === 'html' ? '' : `<button class="sm" data-local="kb-edit" data-path="${path.replace(/"/g, '&quot;')}">✎ แก้ไข<\/button>`}
+    <button class="sm danger" data-local="kb-del" data-path="${path.replace(/"/g, '&quot;')}">🗑 ลบ<\/button><\/div>`;
+
+  const toastMsg = (m, e) => (typeof toast === 'function' ? toast(m, e) : alert(m));
+  const download = (name, text, type = 'application/json') => {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
+  const pickFiles = (accept, multiple, cb) => {
+    const i = document.createElement('input'); i.type = 'file'; i.accept = accept; i.multiple = multiple;
+    i.onchange = () => cb([...i.files]); i.click();
+  };
+  const refreshKb = async () => { await refreshDocList(); };   // ฟังก์ชันจาก app.js
+  function saveDoc(path, title, content, kind) {
+    const ex = db.kb.find(d => d.path === path);
+    const category = path.includes('/') ? path.split('/')[0] : '';
+    if (ex) Object.assign(ex, { title, content, kind }); else db.kb.push({ id: nid('kb'), path, title, kind, category, content });
+    persist();
+  }
+
+  document.addEventListener('click', async ev => {
+    const el = ev.target.closest('[data-local]'); if (!el) return;
+    const a = el.dataset.local, path = el.dataset.path;
+    try {
+      if (a === 'kb-new') {
+        const title = (prompt('ชื่อเอกสารใหม่') || '').trim(); if (!title) return;
+        const p = 'my_notes/' + title.replace(/[\\/:*?"<>|]/g, '_') + '.md';
+        if (db.kb.some(d => d.path === p)) return toastMsg('มีเอกสารชื่อนี้แล้ว', true);
+        saveDoc(p, title, `# ${title}\n\n`, 'md'); await refreshKb(); await openDoc(p); startEdit(p);
+      } else if (a === 'kb-import') {
+        pickFiles('.md,.markdown,.txt,.html,.htm', true, async files => {
+          let n = 0;
+          for (const f of files) {
+            const kind = KB_EXT[f.name.split('.').pop().toLowerCase()];
+            if (!kind) { toastMsg(`ข้ามไฟล์ ${f.name} (รองรับเฉพาะ .md .txt .html)`, true); continue; }
+            const content = await f.text(), p = 'imported/' + f.name;
+            saveDoc(p, kind === 'md' ? kbTitle(content, p) : (/<title>([^<]+)/i.exec(content)?.[1] || f.name.replace(/\.[^.]+$/, '')), content, kind); n++;
+          }
+          if (n) { toastMsg(`นำเข้า ${n} ไฟล์แล้ว`); await refreshKb(); }
+        });
+      } else if (a === 'kb-edit') startEdit(path);
+      else if (a === 'kb-del') {
+        if (!confirm('ลบเอกสารนี้?')) return;
+        db.kb = db.kb.filter(d => d.path !== path); persist(); kb.path = null;
+        $('#kb-view').innerHTML = '<p class="muted">เลือกเอกสารทางซ้าย<\/p>'; await refreshKb();
+      } else if (a === 'backup') {
+        const d = new Date(); download(`offroad-backup-${ymd(d)}-${pad(d.getHours())}${pad(d.getMinutes())}.json`, JSON.stringify(db));
+        toastMsg('ดาวน์โหลดไฟล์สำรองแล้ว');
+      } else if (a === 'restore') {
+        pickFiles('.json,application/json', false, async ([f]) => {
+          try {
+            const data = JSON.parse(await f.text());
+            if (!data || !Array.isArray(data.supplies) || !data.station || !Array.isArray(data.kb)) throw new Error('bad');
+            if (!confirm('แทนที่ข้อมูลปัจจุบันทั้งหมดด้วยไฟล์สำรองนี้?')) return;
+            db = data; persist(); location.reload();
+          } catch { toastMsg('ไฟล์สำรองไม่ถูกต้อง', true); }
+        });
+      } else if (a === 'reset') {
+        if (confirm('ล้างข้อมูลทั้งหมดและเริ่มใหม่ด้วยข้อมูลตัวอย่าง? (แนะนำให้สำรองข้อมูลก่อน)')) {
+          try { localStorage.removeItem(KEY); } catch { /* ignore */ }
+          db = JSON.parse(JSON.stringify(window.OFFROAD_SEED)); persist(); location.reload();
+        }
+      }
+    } catch (e) { toastMsg('ผิดพลาด: ' + e.message, true); }
+  });
+
+  function startEdit(path) {
+    const d = db.kb.find(x => x.path === path); if (!d) return;
+    const el = $('#kb-view');
+    el.innerHTML = `<div class="small muted">แก้ไข: ${esc(d.path)}<\/div>
+      <textarea id="kb-edit" style="min-height:55vh;margin:8px 0;font-family:ui-monospace,Consolas,monospace">${esc(d.content)}<\/textarea>
+      <div class="row gap"><button class="primary" id="kb-save">บันทึก<\/button><button id="kb-cancel">ยกเลิก<\/button><\/div>`;
+    $('#kb-save').onclick = async () => {
+      const content = $('#kb-edit').value; saveDoc(path, d.kind === 'md' ? kbTitle(content, path) : d.title, content, d.kind);
+      toastMsg('บันทึกเอกสารแล้ว'); await refreshKb(); await openDoc(path);
+    };
+    $('#kb-cancel').onclick = () => openDoc(path);
+  }
+
+  // เมนูสำรอง/นำเข้า + สถานะการบันทึก
+  function status() {
+    const s = document.getElementById('persist-status'); if (!s) return;
+    s.textContent = persistOK ? '💾 บันทึกในเบราว์เซอร์นี้' : '⚠ บันทึกถาวรไม่ได้ — ใช้ “สำรองข้อมูล”';
+    s.style.color = persistOK ? '' : 'var(--warn)';
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    const nav = document.getElementById('nav'); if (!nav) return;
+    nav.insertAdjacentHTML('beforeend', `<div class="navtools"><div class="status" id="persist-status"><\/div>
+      <button data-local="backup">⬇ สำรองข้อมูล (.json)<\/button><button data-local="restore">⬆ นำเข้าข้อมูล<\/button>
+      <button data-local="reset" class="danger">⟲ รีเซ็ตเป็นข้อมูลตัวอย่าง<\/button><\/div>`);
+    status();
+  });
+})();
+
+</script>
+<script>
+'use strict';
+/* Off Road web UI — vanilla JS, no external requests (works fully offline). */
+
+// ───────────── helpers ─────────────
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const store = {
+  get: k => { try { return localStorage.getItem(k); } catch { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
+};
+const CAT = { water: '💧 น้ำ', food: '🍱 อาหาร', gas: '🔥 แก๊ส', fuel: '⛽ เชื้อเพลิง' };
+const COND = { sunny: '☀️ แดดจัด', partly: '⛅ มีเมฆบ้าง', cloudy: '☁️ เมฆมาก', rain: '🌧️ ฝน', storm: '⛈️ พายุ' };
+const COND_ICON = { sunny: '☀️', partly: '⛅', cloudy: '☁️', rain: '🌧️', storm: '⛈️' };
+const KIND = { phone: '📱 สมาร์ทโฟน', tablet: '📲 แท็บเล็ต', laptop: '💻 แล็ปท็อป', pc: '🖥️ PC' };
+const PSTATE = { on: 'เปิด', off: 'ปิด', charging: 'กำลังชาร์จ', standby: 'สแตนด์บาย' };
+const EVKIND = { water_gate: '🌊 น้ำหน้าบ้าน', water_indoor: '🏠 น้ำในบ้าน', breaker: '⚡ เบรกเกอร์', solar: '☀️ โซลาร์', power: '🔋 พลังงาน',
+  supply: '📦 เสบียง', health: '🩹 สุขภาพ', comms: '📡 สื่อสาร', note: '📝 บันทึก' };
+const EVUNIT = { water_gate: 'cm', water_indoor: 'cm', solar: 'Wh' };
+const STATUS_CLS = { ok: 'ok', warn: 'warn', crit: 'crit', unknown: 'info' };
+
+const num = (n, d = 0) => (n == null || isNaN(n)) ? '—' : Number(n).toLocaleString('th-TH', { maximumFractionDigits: d });
+const fmtDays = d => d == null ? '∞' : d >= 10 ? String(Math.round(d)) : d.toFixed(1);
+const hhmm = d => d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+function when(iso) {            // เวลาสั้น ๆ; ถ้าไม่ใช่วันนี้ใส่วันที่ด้วย
+  if (!iso) return '—';
+  const d = new Date(iso), now = new Date();
+  return d.toDateString() === now.toDateString() ? hhmm(d)
+    : d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) + ' ' + hhmm(d);
+}
+function ago(iso) {
+  const m = Math.round((Date.now() - new Date(iso)) / 60000);
+  return m < 1 ? 'เมื่อสักครู่' : m < 60 ? `${m} นาทีที่แล้ว` : m < 1440 ? `${Math.floor(m / 60)} ชม.ที่แล้ว` : `${Math.floor(m / 1440)} วันที่แล้ว`;
+}
+const opts = (map, sel) => Object.entries(map).map(([k, v]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${esc(v)}<\/option>`).join('');
+const dayName = iso => new Date(iso + 'T00:00').toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric' });
+
+let toastTimer;
+function toast(msg, err) {
+  const t = $('#toast');
+  t.textContent = msg; t.className = 'show' + (err ? ' err' : '');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.className = '', 2200);
+}
+
+async function api(path, method = 'GET', body, retried = false) {
+  if (window.OFFROAD_API) return window.OFFROAD_API(path, method, body);   // โหมดไฟล์เดียว (ไม่มีเซิร์ฟเวอร์)
+  const headers = {};
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const pin = store.get('offroad_pin');
+  if (pin) headers['X-Offroad-Pin'] = pin;
+  const r = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+  if (r.status === 403 && !retried) {   // เครื่องอื่นใน LAN: ต้องใช้ PIN เพื่อแก้ไข
+    const e = await r.json().catch(() => ({}));
+    if (e.error === 'pin_required') {
+      const p = prompt('ใส่ PIN เพื่อแก้ไขข้อมูล (ดูได้ที่หน้าจอโปรแกรมบนเครื่องหลัก)');
+      if (p) { store.set('offroad_pin', p.trim()); return api(path, method, body, true); }
+    }
+    throw new Error(e.error || 'forbidden');
+  }
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || String(r.status));
+  return r.json();
+}
+
+// ───────────── minimal Markdown renderer (escape-first, no raw HTML) ─────────────
+function inline(s) {
+  return esc(s)
+    .replace(/`([^`]+)`/g, '<code>$1<\/code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1<\/b>')
+    .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2<\/i>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1<\/a>');
+}
+function md(src) {
+  const L = src.replace(/\r/g, '').split('\n'), out = [];
+  let list = null, i = 0;
+  const close = () => { if (list) { out.push(`<\/${list}>`); list = null; } };
+  const cells = r => r.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+  while (i < L.length) {
+    const l = L[i]; let m;
+    if (/^```/.test(l)) {
+      close(); const buf = []; i++;
+      while (i < L.length && !/^```/.test(L[i])) buf.push(L[i++]);
+      out.push('<pre><code>' + esc(buf.join('\n')) + '<\/code><\/pre>');
+    } else if ((m = l.match(/^(#{1,3})\s+(.*)/))) {
+      close(); out.push(`<h${m[1].length}>${inline(m[2])}<\/h${m[1].length}>`);
+    } else if (/^\s*([-*_])\1{2,}\s*$/.test(l)) { close(); out.push('<hr>');
+    } else if (/^>\s?/.test(l)) { close(); out.push('<blockquote>' + inline(l.replace(/^>\s?/, '')) + '<\/blockquote>');
+    } else if (/^\s*\|.*\|\s*$/.test(l) && /^\s*\|[\s:|-]+\|\s*$/.test(L[i + 1] || '')) {
+      close(); const head = cells(l); i += 2; const rows = [];
+      while (i < L.length && /^\s*\|/.test(L[i])) rows.push(cells(L[i++]));
+      i--;
+      out.push('<div class="tablewrap"><table><tr>' + head.map(h => `<th>${inline(h)}<\/th>`).join('') + '<\/tr>'
+        + rows.map(r => '<tr>' + r.map(c => `<td>${inline(c)}<\/td>`).join('') + '<\/tr>').join('') + '<\/table><\/div>');
+    } else if ((m = l.match(/^\s*[-*]\s+(?:\[([ xX])\]\s+)?(.*)/))) {
+      if (list !== 'ul') { close(); out.push('<ul>'); list = 'ul'; }
+      out.push(m[1] === undefined ? `<li>${inline(m[2])}<\/li>` : `<li class="task">${/x/i.test(m[1]) ? '☑' : '☐'} ${inline(m[2])}<\/li>`);
+    } else if ((m = l.match(/^\s*\d+[.)]\s+(.*)/))) {
+      if (list !== 'ol') { close(); out.push('<ol>'); list = 'ol'; }
+      out.push(`<li>${inline(m[1])}<\/li>`);
+    } else if (!l.trim()) { close();
+    } else { close(); out.push('<p>' + inline(l) + '<\/p>'); }
+    i++;
+  }
+  close();
+  return out.join('\n');
+}
+
+// ───────────── view: dashboard ─────────────
+const bar = (pct, cls = '') => `<div class="bar ${cls}"><i style="width:${Math.max(0, Math.min(100, pct))}%"><\/i><\/div>`;
+
+function phaseCard(d) {
+  const p = d.phase;
+  return `<section class="card span2">
+    <h2>สถานการณ์ปัจจุบัน<\/h2>
+    <div class="row wrap between">
+      <div class="row wrap">
+        <span class="flag ${p.flag}">⚑ ${esc(p.name)}<\/span>
+        <span class="muted">${esc(p.summary)}<\/span>
+      <\/div>
+      <div class="row gap">${[1, 2, 3].map(n => `<button class="seg ${n === p.level ? 'on' : ''}" data-flag="${['yellow', 'orange', 'red'][n - 1]}"
+        data-act="phase" data-level="${n}">ระดับ ${n}<\/button>`).join('')}<\/div>
+    <\/div>
+    <div class="row mt gap"><div style="flex:1">${bar(p.total ? 100 * p.done / p.total : 0, 'info')}<\/div>
+      <a href="#log" class="small">Checklist ${p.done}/${p.total}<\/a><\/div>
+  <\/section>`;
+}
+
+function powerCard(d) {
+  const p = d.power, pct = p.soc_pct, cls = pct < 20 ? 'crit' : pct < 40 ? 'warn' : '';
+  const dr = p.days_remaining;
+  const drCls = p.sustainable ? 'ok' : dr < 1 ? 'crit' : dr < 3 ? 'warn' : 'ok';
+  const net = p.days[0] ? p.days[0].solar_wh - p.burn_wh_day : 0;
+  return `<section class="card"><h2>🔋 พลังงาน <a href="#power" class="small">จัดการ<\/a><\/h2>
+    <div class="row gap">
+      <div class="ring ${cls}"><svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="54" fill="none" stroke-width="10"/>
+        <circle class="val" cx="60" cy="60" r="54" fill="none" stroke-width="10" stroke-dasharray="${(pct * 3.3929).toFixed(1)} 339.3"/><\/svg>
+        <div class="label"><b>${num(pct)}%<\/b><span class="small muted">${num(p.stored_wh)} Wh<\/span><\/div><\/div>
+      <div>
+        <div class="big ${drCls}">${p.sustainable ? '✅ พอใช้' : '~' + fmtDays(dr)}<\/div>
+        <div class="muted">${p.sustainable ? 'โซลาร์พอเลี้ยงโหลดตามพยากรณ์' : 'วันที่แบตจะถึงเกณฑ์สำรอง'}<\/div>
+        <div class="small mt">ใช้ ${num(p.burn_wh_day)} Wh/วัน · โซลาร์วันนี้ ${num(p.days[0]?.solar_wh)} Wh
+          <span class="${net < 0 ? 'warn' : 'ok'}">(สุทธิ ${net >= 0 ? '+' : ''}${num(net)})<\/span><\/div>
+      <\/div><\/div>
+    <div class="spark mt" title="แบตคงเหลือ (%) คาดการณ์ 7 วัน">${p.days.map(x => `<div><span class="${x.end_pct < 20 ? 'low' : ''}"
+      style="height:${Math.max(2, x.end_pct * 0.5)}px"><\/span>${COND_ICON[x.condition] || ''}<\/div>`).join('')}<\/div>
+  <\/section>`;
+}
+
+function supplyCard(d) {
+  return `<section class="card"><h2>📦 เสบียง <a href="#supplies" class="small">จัดการ<\/a><\/h2>
+    ${d.supplies.map(c => `<div class="mt" style="margin-top:8px"><div class="row between"><span>${CAT[c.category] || esc(c.category)}<\/span>
+      <b class="${STATUS_CLS[c.status]}">${c.days == null ? '—' : fmtDays(c.days) + ' วัน'}<\/b><\/div>
+      ${bar(c.days == null ? 0 : c.days / 14 * 100, c.status === 'ok' ? '' : STATUS_CLS[c.status])}
+      <div class="small muted">${c.items.map(i => `${esc(i.name)} ${num(i.qty_remaining, 1)} ${esc(i.unit)}`).join(' · ')}<\/div><\/div>`).join('')}
+  <\/section>`;
+}
+
+function waterCard(d) {
+  const one = (label, e) => `<div><div class="muted small">${label}<\/div>
+    <div class="big">${e ? num(e.value, 1) : '—'}<span class="small muted"> cm<\/span><\/div>
+    <div class="small muted">${e ? ago(e.ts) : 'ยังไม่มีข้อมูล'}<\/div><\/div>`;
+  return `<section class="card"><h2>🌊 ระดับน้ำ<\/h2>
+    <div class="row between wrap">${one('หน้าบ้าน (ถนน)', d.water.gate)}${one('ในบ้าน ชั้น 1', d.water.indoor)}<\/div>
+    <form class="inline mt" data-post="/api/events" data-toast="บันทึกระดับน้ำแล้ว">
+      <select name="kind"><option value="water_gate">หน้าบ้าน<\/option><option value="water_indoor">ในบ้าน<\/option><\/select>
+      <input type="number" name="value" step="0.5" min="0" placeholder="cm" required><input type="hidden" name="unit" value="cm">
+      <button class="primary">บันทึก<\/button><\/form>
+  <\/section>`;
+}
+
+function commsCard(d) {
+  const s = d.sims;
+  const chips = (arr, cls) => arr.length ? arr.map(x => `<span class="chip ${cls}">${esc(x)}<\/span>`).join(' ') : '<span class="muted">—<\/span>';
+  return `<section class="card"><h2>📡 การสื่อสาร <a href="#fleet" class="small">จัดการ<\/a><\/h2>
+    <div class="small muted">ตามตารางควรเปิดซิมตอนนี้<\/div><div class="row wrap gap">${chips(s.on_now, 'ok')}<\/div>
+    <div class="small muted mt">ซิมที่เปิดอยู่จริง<\/div><div class="row wrap gap">${chips(s.actual_on, 'info')}<\/div>
+    ${s.mismatch.length ? `<div class="warn small mt">⚠ ไม่ตรงตาราง: ${s.mismatch.map(esc).join(', ')}<\/div>` : ''}
+    <div class="small mt">เปลี่ยนสถานะครั้งถัดไป: <b>${when(s.next_change)}<\/b><\/div>
+    ${s.hotspots.map(h => `<div class="small">📶 Hotspot ${esc(h.device_name)}: <b class="${h.active ? 'ok' : 'muted'}">${h.active ? 'ควรเปิดตอนนี้' : 'ปิด'}<\/b>
+      · ถัดไป ${when(h.next_change)}<\/div>`).join('')}
+  <\/section>`;
+}
+
+function fleetCard(d) {
+  const f = d.fleet;
+  return `<section class="card"><h2>📱 อุปกรณ์ ${f.total} ชิ้น <a href="#fleet" class="small">จัดการ<\/a><\/h2>
+    <div class="row wrap gap">${Object.entries(f.by_kind).map(([k, n]) => `<span class="chip">${KIND[k] || esc(k)} × ${n}<\/span>`).join('')}<\/div>
+    <div class="small mt">เปิด/ชาร์จอยู่ ${f.powered_on} เครื่อง<\/div>
+    ${f.low_battery.length ? `<div class="warn small mt">🔻 แบตต่ำ: ${f.low_battery.map(x => `${esc(x.name)} (${x.battery_pct}%)`).join(', ')}<\/div>`
+      : '<div class="ok small mt">✓ ไม่มีอุปกรณ์แบตต่ำ<\/div>'}
+  <\/section>`;
+}
+
+function timelineCard(d) {
+  return `<section class="card"><h2>📝 เหตุการณ์ล่าสุด <a href="#log" class="small">ทั้งหมด<\/a><\/h2>
+    <ul class="list">${d.events.map(e => `<li><time>${when(e.ts)}<\/time><span class="grow">${EVKIND[e.kind] || ''}
+      ${e.value != null ? `<b>${num(e.value, 1)} ${esc(e.unit || '')}<\/b>` : ''} ${esc(e.text || '')}<\/span><\/li>`).join('')}<\/ul>
+    <form class="inline mt" data-post="/api/events" data-toast="บันทึกแล้ว"><input type="hidden" name="kind" value="note">
+      <input class="wide" style="flex:1" name="text" placeholder="บันทึกเหตุการณ์ใหม่…" required><button class="primary">เพิ่ม<\/button><\/form>
+  <\/section>`;
+}
+
+async function viewDashboard() {
+  const [d, meta] = await Promise.all([api('/api/dashboard'), api('/api/meta?port=' + (location.port || 80))]);
+  const note = meta.note ? `<section class="card"><h2>💾 ข้อมูลของคุณ<\/h2><div class="small">${esc(meta.note)}<\/div><\/section>` : '';
+  const lan = meta.lan_urls.length ? `<section class="card"><h2>🛜 เปิดจากอุปกรณ์อื่น (Wi-Fi/Hotspot เดียวกัน)<\/h2>
+      <div class="row wrap gap">${meta.lan_urls.map(u => `<code class="chip info">${esc(u)}<\/code>`).join('')}<\/div>
+      <div class="small muted mt">อ่านได้ทันที · การแก้ไขข้อมูลจากเครื่องอื่นต้องใส่ PIN (แสดงตอนเปิดโปรแกรม)<\/div><\/section>` : '';
+  return { title: 'แดชบอร์ด', html: `<div class="grid">${phaseCard(d)}${powerCard(d)}${supplyCard(d)}${waterCard(d)}${commsCard(d)}${fleetCard(d)}${timelineCard(d)}${lan}${note}<\/div>` };
+}
+
+// ───────────── view: supplies ─────────────
+async function viewSupplies() {
+  const cats = await api('/api/supplies');
+  const rows = cats.map(c => `<tr class="group"><td colspan="7">${CAT[c.category] || esc(c.category)}
+      <span class="chip ${STATUS_CLS[c.status]}">${c.days == null ? 'ไม่ระบุอัตราใช้' : 'เหลือรวม ' + fmtDays(c.days) + ' วัน'}<\/span><\/td><\/tr>`
+    + c.items.map(i => `<tr>
+      <td><input data-edit="/api/supplies/${i.id}" data-field="name" value="${esc(i.name)}"><\/td>
+      <td class="num"><input type="number" step="any" min="0" data-edit="/api/supplies/${i.id}" data-field="qty_remaining" value="${i.qty_remaining}"><\/td>
+      <td>${esc(i.unit)}<\/td>
+      <td class="num"><input type="number" step="any" min="0" data-edit="/api/supplies/${i.id}" data-field="daily_use" value="${i.daily_use}"><\/td>
+      <td class="num">${i.days == null ? '—' : fmtDays(i.days)}<\/td>
+      <td><div class="row gap"><input type="number" step="any" min="0" id="amt-${i.id}" placeholder="จำนวน" style="width:80px">
+        <button class="sm" data-act="adjust" data-id="${i.id}" data-sign="-1">− ใช้<\/button>
+        <button class="sm" data-act="adjust" data-id="${i.id}" data-sign="1">+ เติม<\/button><\/div><\/td>
+      <td><button class="sm danger" data-act="del" data-url="/api/supplies/${i.id}" title="ลบ">✕<\/button><\/td><\/tr>`).join('')).join('');
+  return { title: 'เสบียง', html: `<section class="card"><div class="tablewrap"><table>
+      <tr><th>รายการ<\/th><th class="num">คงเหลือ<\/th><th>หน่วย<\/th><th class="num" title="ปริมาณที่ใช้ต่อวัน ถ้าใช้ชนิดนี้อย่างเดียว">ใช้/วัน<\/th><th class="num">วัน<\/th><th>ปรับยอด<\/th><th><\/th><\/tr>
+      ${rows}<\/table><\/div>
+      <p class="small muted">“ใช้/วัน” = ปริมาณที่ใช้ต่อวันหากใช้ชนิดนี้อย่างเดียว · จำนวนวันของหมวด = ผลรวมของวันที่แต่ละรายการให้ได้<\/p><\/section>
+    <section class="card mt"><h2>เพิ่มรายการ<\/h2><form class="inline" data-post="/api/supplies" data-toast="เพิ่มรายการแล้ว">
+      <select name="category">${opts(CAT)}<\/select><input name="name" placeholder="ชื่อ" required>
+      <input name="unit" placeholder="หน่วย" style="width:90px" required><input type="number" name="qty_initial" step="any" min="0" placeholder="จำนวน" required>
+      <input type="number" name="daily_use" step="any" min="0" placeholder="ใช้/วัน" required><button class="primary">เพิ่ม<\/button><\/form><\/section>` };
+}
+
+// ───────────── view: power ─────────────
+async function viewPower() {
+  const p = await api('/api/power'), st = p.station, E = '/api/power/station';
+  const field = (label, f, step = 'any', hint = '') => `<label class="small muted">${label}<br>
+    <input type="number" step="${step}" data-edit="${E}" data-field="${f}" value="${st[f]}" title="${esc(hint)}"><\/label>`;
+  return { title: 'พลังงาน', html: `<div class="grid wide">
+    <section class="card"><h2>Power Station &amp; โซลาร์<\/h2><div class="row wrap gap">
+      ${field('ความจุ (Wh)', 'capacity_wh')}${field('แบตตอนนี้ (SoC %)', 'soc_pct', '1')}${field('สำรองขั้นต่ำ (%)', 'reserve_pct', '1')}
+      ${field('ประสิทธิภาพอินเวอร์เตอร์ (0–1)', 'inverter_eff', '0.01')}${field('โซลาร์สูงสุด (W)', 'solar_peak_w')}
+      ${field('ค่าลดทอนโซลาร์ (0–1)', 'solar_derate', '0.01', 'ฝุ่น/ความร้อน/มุมแผง')}${field('ชม.แดดจัด/วัน', 'peak_sun_hours', '0.1')}
+      <label class="small muted">พยากรณ์ตั้งต้น<br><select data-edit="${E}" data-field="default_condition">${opts(COND, p.default_condition)}<\/select><\/label><\/div>
+      <div class="mt big ${p.sustainable ? 'ok' : p.days_remaining < 1 ? 'crit' : p.days_remaining < 3 ? 'warn' : ''}">
+        ${p.sustainable ? '✅ โซลาร์พอใช้ตลอด 14 วัน' : 'แบตอยู่ได้ ~' + fmtDays(p.days_remaining) + ' วัน'}<\/div>
+      <div class="small muted">โหลดรวม ${num(p.load_wh_day)} Wh/วัน (แบตจ่ายจริง ${num(p.burn_wh_day)} Wh) · เก็บอยู่ ${num(p.stored_wh)} Wh · สำรอง ${num(p.reserve_wh)} Wh<\/div>
+    <\/section>
+    <section class="card"><h2>พยากรณ์แสงแดด 14 วัน<\/h2><div class="tablewrap"><table>
+      <tr><th>วัน<\/th><th>สภาพอากาศ<\/th><th class="num">โซลาร์ Wh<\/th><th class="num">แบตสิ้นวัน<\/th><\/tr>
+      ${p.days.map(x => `<tr><td>${dayName(x.day)}<\/td><td><select data-forecast="${x.day}"><option value="default">ตามค่าตั้งต้น (${COND_ICON[p.default_condition]})<\/option>
+        ${opts(COND, p.forecast_days[x.day])}<\/select><\/td><td class="num">${num(x.solar_wh)}<\/td>
+        <td class="num ${x.end_pct < 20 ? 'crit' : ''}">${num(x.end_pct)}%<\/td><\/tr>`).join('')}<\/table><\/div><\/section>
+    <section class="card span2"><h2>โหลดไฟฟ้า (Wh/วัน)<\/h2><div class="tablewrap"><table>
+      <tr><th>เปิดใช้<\/th><th>อุปกรณ์<\/th><th class="num">วัตต์<\/th><th class="num">ชม./วัน<\/th><th class="num">Wh/วัน<\/th><th><\/th><\/tr>
+      ${p.loads.map(l => `<tr><td><input type="checkbox" data-edit="/api/power/loads/${l.id}" data-field="enabled" ${l.enabled ? 'checked' : ''}><\/td>
+        <td><input data-edit="/api/power/loads/${l.id}" data-field="name" value="${esc(l.name)}"><\/td>
+        <td class="num"><input type="number" step="any" min="0" data-edit="/api/power/loads/${l.id}" data-field="watts" value="${l.watts}"><\/td>
+        <td class="num"><input type="number" step="any" min="0" max="24" data-edit="/api/power/loads/${l.id}" data-field="hours_per_day" value="${l.hours_per_day}"><\/td>
+        <td class="num ${l.enabled ? '' : 'muted'}">${num(l.watts * l.hours_per_day)}<\/td>
+        <td><button class="sm danger" data-act="del" data-url="/api/power/loads/${l.id}">✕<\/button><\/td><\/tr>`).join('')}<\/table><\/div>
+      <form class="inline mt" data-post="/api/power/loads" data-toast="เพิ่มโหลดแล้ว"><input name="name" placeholder="ชื่ออุปกรณ์" required>
+        <input type="number" name="watts" step="any" min="0" placeholder="W" required><input type="number" name="hours_per_day" step="any" min="0" max="24" placeholder="ชม./วัน" required>
+        <input type="hidden" name="enabled" value="1"><button class="primary">เพิ่ม<\/button><\/form><\/section><\/div>` };
+}
+
+// ───────────── view: fleet & SIM ─────────────
+async function viewFleet() {
+  const [f, s] = await Promise.all([api('/api/devices'), api('/api/sims')]);
+  const devName = Object.fromEntries(f.devices.map(d => [d.id, d.name]));
+  const D = id => `/api/devices/${id}`;
+  const days = d => '<span class="muted small">' + [...d].map((c, i) => c === '1' ? ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'][i] : '·').join(' ') + '<\/span>';
+  const schedRow = w => `<tr><td>${w.kind === 'sim_power' ? '🔌 ซิม ' + esc(s.sims.find(x => x.id === w.sim_id)?.label) : '📶 Hotspot ' + esc(devName[w.device_id])}<\/td>
+    <td><input type="time" data-edit="/api/schedules/${w.id}" data-field="start_hhmm" value="${w.start_hhmm}"><\/td>
+    <td><input type="time" data-edit="/api/schedules/${w.id}" data-field="end_hhmm" value="${w.end_hhmm}"><\/td>
+    <td><input data-edit="/api/schedules/${w.id}" data-field="days" value="${w.days}" maxlength="7" pattern="[01]{7}" title="จันทร์→อาทิตย์ 1=ทำงาน" style="width:92px"> ${days(w.days)}<\/td>
+    <td><input type="checkbox" data-edit="/api/schedules/${w.id}" data-field="enabled" ${w.enabled ? 'checked' : ''}><\/td>
+    <td><button class="sm danger" data-act="del" data-url="/api/schedules/${w.id}">✕<\/button><\/td><\/tr>`;
+  return { title: 'อุปกรณ์ & SIM', html: `
+    <section class="card"><h2>อุปกรณ์ทั้งหมด (${f.total})<\/h2><div class="tablewrap"><table>
+      <tr><th>ชื่อ<\/th><th>ประเภท<\/th><th class="num">แบต %<\/th><th class="num">สุขภาพแบต %<\/th><th>สถานะ<\/th><th>ซิม<\/th><th>หน้าที่/หมายเหตุ<\/th><\/tr>
+      ${f.devices.map(d => `<tr><td><input data-edit="${D(d.id)}" data-field="name" value="${esc(d.name)}"><\/td><td>${KIND[d.kind]}<\/td>
+        <td class="num">${d.battery_pct == null ? '<span class="muted">AC<\/span>' : `<input type="number" min="0" max="100" data-edit="${D(d.id)}" data-field="battery_pct" value="${d.battery_pct}" class="${d.battery_pct < 30 ? 'crit' : ''}">`}<\/td>
+        <td class="num">${d.battery_health_pct == null ? '—' : `<input type="number" min="0" max="100" data-edit="${D(d.id)}" data-field="battery_health_pct" value="${d.battery_health_pct}">`}<\/td>
+        <td><select data-edit="${D(d.id)}" data-field="power_state">${opts(PSTATE, d.power_state)}<\/select><\/td>
+        <td>${d.sims.map(x => `<span class="chip">${esc(x)}<\/span>`).join(' ')}<\/td>
+        <td><input data-edit="${D(d.id)}" data-field="role" value="${esc(d.role || '')}" placeholder="เช่น สื่อสารหลัก"><\/td><\/tr>`).join('')}<\/table><\/div><\/section>
+    <section class="card mt"><h2>ซิม (AIS / True)<\/h2><div class="tablewrap"><table>
+      <tr><th>ซิม<\/th><th>เครื่อง<\/th><th>ควรเป็น<\/th><th>จริง<\/th><th>เปลี่ยนถัดไป<\/th><th>หมดอายุ<\/th><\/tr>
+      ${s.sims.map(m => `<tr><td><b>${esc(m.label)}<\/b> <span class="chip ${m.carrier === 'AIS' ? 'ok' : 'warn'}">${m.carrier}<\/span><\/td><td>${esc(m.device_name || '—')}<\/td>
+        <td><span class="chip ${m.scheduled_on ? 'ok' : ''}">${m.has_schedule ? (m.scheduled_on ? 'เปิด' : 'ปิด') : 'ไม่มีตาราง'}<\/span><\/td>
+        <td><select data-edit="/api/sims/${m.id}" data-field="actual_state"><option value="on"${m.actual_state === 'on' ? ' selected' : ''}>เปิด<\/option><option value="off"${m.actual_state === 'off' ? ' selected' : ''}>ปิด<\/option><\/select>
+          ${m.mismatch ? '<span class="warn" title="ไม่ตรงตาราง">⚠<\/span>' : ''}<\/td>
+        <td>${when(m.next_change)}<\/td><td><input type="date" data-edit="/api/sims/${m.id}" data-field="expires_on" value="${esc(m.expires_on || '')}" style="width:150px"><\/td><\/tr>`).join('')}<\/table><\/div><\/section>
+    <section class="card mt"><h2>ตารางหมุนเวียนเปิด–ปิด (SIM / Hotspot)<\/h2><div class="tablewrap"><table>
+      <tr><th>เป้าหมาย<\/th><th>เริ่ม<\/th><th>จบ<\/th><th>วัน (จ→อา)<\/th><th>ใช้<\/th><th><\/th><\/tr>${s.schedules.map(schedRow).join('')}<\/table><\/div>
+      <div class="row wrap gap mt">
+        <form class="inline" data-post="/api/schedules" data-toast="เพิ่มเวลาแล้ว"><input type="hidden" name="kind" value="sim_power">
+          <select name="sim_id">${s.sims.map(m => `<option value="${m.id}">${esc(m.label)}<\/option>`).join('')}<\/select>
+          <input type="time" name="start_hhmm" required><input type="time" name="end_hhmm" required><button class="primary">+ เวลาเปิดซิม<\/button><\/form>
+        <form class="inline" data-post="/api/schedules" data-toast="เพิ่มเวลาแล้ว"><input type="hidden" name="kind" value="hotspot">
+          <select name="device_id">${f.devices.map(d => `<option value="${d.id}">${esc(d.name)}<\/option>`).join('')}<\/select>
+          <input type="time" name="start_hhmm" required><input type="time" name="end_hhmm" required><button class="primary">+ เวลา Hotspot<\/button><\/form><\/div><\/section>` };
+}
+
+// ───────────── view: knowledge base ─────────────
+const kb = { q: '', path: null };
+function docList(items, searching) {
+  if (!items.length) return `<p class="muted">${searching ? 'ไม่พบผลลัพธ์' : 'ยังไม่มีเอกสาร — วางไฟล์ใน knowledge/ แล้วกด “สแกนใหม่”'}<\/p>`;
+  let last = null, out = '';
+  for (const d of items) {
+    if (!searching && d.category !== last) { out += `<div class="small muted" style="margin-top:10px">📁 ${esc(d.category || 'ทั่วไป')}<\/div>`; last = d.category; }
+    const snip = d.snip ? `<span class="snip">${esc(d.snip).replace(/\x02/g, '<mark>').replace(/\x03/g, '<\/mark>')}<\/span>` : '';
+    out += `<button class="doclink ${d.path === kb.path ? 'active' : ''}" data-act="open-doc" data-path="${esc(d.path)}">
+      ${esc(d.title)} <span class="chip">${d.kind}<\/span>${snip}<\/button>`;
+  }
+  return out;
+}
+async function refreshDocList() {
+  const el = $('#kb-list'); if (!el) return;
+  const items = kb.q.trim() ? await api('/api/kb/search?q=' + encodeURIComponent(kb.q)) : await api('/api/kb');
+  el.innerHTML = docList(items, !!kb.q.trim());
+}
+async function openDoc(path) {
+  kb.path = path;
+  const el = $('#kb-view');
+  const url = '/kb-files/' + path.split('/').map(encodeURIComponent).join('/');
+  const doc = await api('/api/kb/doc?path=' + encodeURIComponent(path));
+  if (doc.kind === 'md') el.innerHTML = `<div class="md">${md(doc.content)}<\/div>`;
+  else if (doc.kind === 'txt') el.innerHTML = `<pre style="white-space:pre-wrap">${esc(doc.content)}<\/pre>`;
+  else if (doc.srcdoc != null) el.innerHTML = `<iframe class="doc" sandbox="allow-popups" srcdoc="${esc(doc.srcdoc)}" title="${esc(doc.title)}"><\/iframe>`;
+  else el.innerHTML = `<iframe class="doc" src="${url}" ${doc.kind === 'html' ? 'sandbox="allow-popups"' : ''} title="${esc(doc.title)}"><\/iframe>
+    <p class="small"><a href="${url}" target="_blank">เปิดในแท็บใหม่<\/a><\/p>`;
+  if (window.OFFROAD_DOC_TOOLS) el.insertAdjacentHTML('afterbegin', window.OFFROAD_DOC_TOOLS(path, doc.kind));
+  refreshDocList();
+}
+async function viewKnowledge() {
+  return { title: 'คลังความรู้', html: `<div class="kbgrid"><section class="card">
+      <div class="row gap"><input id="kb-q" class="wide" type="search" placeholder="ค้นหาในเอกสารทั้งหมด…" value="${esc(kb.q)}">
+        <button class="sm js-reindex" data-act="reindex" title="สแกนโฟลเดอร์ knowledge/ ใหม่">⟳<\/button><\/div>
+      ${window.OFFROAD_KB_TOOLS || ''}
+      <div id="kb-list" class="mt"><\/div><\/section>
+      <section class="card" id="kb-view"><p class="muted">เลือกเอกสารทางซ้าย<\/p><\/section><\/div>`,
+    after: async () => { await refreshDocList(); if (kb.path) openDoc(kb.path).catch(() => { kb.path = null; }); } };
+}
+
+// ───────────── view: log & checklists ─────────────
+const logState = { phase: null, filter: '' };
+async function viewLog() {
+  const [chk, ev] = await Promise.all([api('/api/checklists'), api('/api/events?limit=200' + (logState.filter ? '&kind=' + logState.filter : ''))]);
+  const lv = logState.phase || chk.active, ph = chk.phases.find(p => p.level === lv);
+  return { title: 'บันทึก & Checklist', html: `<div class="grid wide">
+    <section class="card"><h2>Checklist ตามระดับ<\/h2>
+      <div class="row gap wrap">${chk.phases.map(p => `<button class="seg ${p.level === lv ? 'on' : ''}" data-flag="${p.flag}" data-act="log-phase" data-level="${p.level}">
+        ${esc(p.name)} (${p.done}/${p.total})<\/button>`).join('')}<\/div>
+      <div class="row between mt"><span class="muted small">${esc(ph.summary)}${lv === chk.active ? ' · <b>ระดับปัจจุบัน<\/b>' : ''}<\/span>
+        <span><button class="sm" data-act="reset-checklist" data-level="${lv}">รีเซ็ต<\/button><\/span><\/div>
+      <div class="mt">${ph.items.map(i => `<div class="check ${i.done ? 'done' : ''}"><input type="checkbox" ${i.done ? 'checked' : ''} data-act="toggle-item" data-id="${i.id}">
+        <span class="t" data-act="toggle-item" data-id="${i.id}">${esc(i.text)}${i.done_at ? ` <span class="small muted">· ${when(i.done_at)}<\/span>` : ''}<\/span>
+        <button class="sm danger" data-act="del" data-url="/api/checklists/items/${i.id}" data-noconfirm="1">✕<\/button><\/div>`).join('')}<\/div>
+      <form class="inline mt" data-post="/api/checklists/items" data-toast="เพิ่มข้อแล้ว"><input type="hidden" name="level" value="${lv}">
+        <input name="text" style="flex:1" placeholder="เพิ่มข้อใหม่ในระดับนี้…" required><button class="primary">เพิ่ม<\/button><\/form><\/section>
+    <section class="card"><h2>บันทึกเหตุการณ์ (Timeline)<\/h2>
+      <form class="inline" data-post="/api/events" data-toast="บันทึกแล้ว"><select name="kind">${opts(EVKIND, 'note')}<\/select>
+        <input type="number" name="value" step="any" placeholder="ค่า" style="width:80px"><input name="unit" placeholder="หน่วย" style="width:64px">
+        <input name="text" placeholder="รายละเอียด" style="flex:1;min-width:140px"><button class="primary">บันทึก<\/button><\/form>
+      <div class="row gap mt"><span class="small muted">กรอง<\/span><select data-act="log-filter"><option value="">ทั้งหมด<\/option>${opts(EVKIND, logState.filter)}<\/select><\/div>
+      <ul class="list">${ev.map(e => `<li><time>${when(e.ts)}<\/time><span class="grow">${EVKIND[e.kind] || ''}
+        ${e.value != null ? `<b>${num(e.value, 1)} ${esc(e.unit || '')}<\/b>` : ''} ${esc(e.text || '')}<\/span>
+        <button class="sm danger" data-act="del" data-url="/api/events/${e.id}">✕<\/button><\/li>`).join('')}<\/ul><\/section><\/div>` };
+}
+
+// ───────────── router / render ─────────────
+const VIEWS = { dashboard: viewDashboard, supplies: viewSupplies, power: viewPower, fleet: viewFleet, knowledge: viewKnowledge, log: viewLog };
+let current = 'dashboard';
+
+async function render() {
+  current = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'dashboard';
+  document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('active', a.dataset.v === current));
+  const y = scrollY;
+  try {
+    const v = await VIEWS[current]();
+    $('#app').innerHTML = `<header class="top"><h1>${esc(v.title)}<\/h1><span class="spacer"><\/span><span class="clock"><\/span><\/header>${v.html}`;
+    tick(); scrollTo(0, y);
+    if (v.after) await v.after();
+  } catch (e) {
+    $('#app').innerHTML = `<div class="card crit">โหลดข้อมูลไม่สำเร็จ: ${esc(e.message)}<\/div>`;
+  }
+}
+function tick() {
+  const c = $('.clock');
+  if (c) c.textContent = new Date().toLocaleString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+async function run(fn, okMsg) {
+  try { await fn(); if (okMsg) toast(okMsg); await render(); } catch (e) { toast('ผิดพลาด: ' + e.message, true); }
+}
+
+// ───────────── events (delegated) ─────────────
+const app = $('#app');
+
+app.addEventListener('change', ev => {
+  const el = ev.target;
+  if (el.dataset.edit) {
+    const v = el.type === 'checkbox' ? (el.checked ? 1 : 0) : el.type === 'number' ? (el.value === '' ? null : Number(el.value)) : el.value;
+    run(() => api(el.dataset.edit, 'PUT', { [el.dataset.field]: v }), 'บันทึกแล้ว');
+  } else if (el.dataset.forecast) {
+    run(() => api('/api/power/forecast', 'PUT', { day: el.dataset.forecast, condition: el.value }));
+  } else if (el.dataset.act === 'log-filter') {
+    logState.filter = el.value; render();
+  } else if (el.name === 'kind' && el.form?.elements.unit && el.form.dataset.post === '/api/events') {
+    el.form.elements.unit.value = EVUNIT[el.value] || '';
+  }
+});
+
+app.addEventListener('input', ev => {
+  if (ev.target.id !== 'kb-q') return;
+  kb.q = ev.target.value;
+  clearTimeout(kb.timer); kb.timer = setTimeout(refreshDocList, 250);
+});
+
+
+app.addEventListener('submit', ev => {
+  const f = ev.target;
+  if (!f.dataset.post) return;
+  ev.preventDefault();
+  const body = Object.fromEntries(new FormData(f));
+  run(() => api(f.dataset.post, 'POST', body), f.dataset.toast);
+});
+
+app.addEventListener('click', ev => {
+  const el = ev.target.closest('[data-act]');
+  if (!el || el.tagName === 'SELECT' || (el.type === 'checkbox' && ev.target !== el)) return;
+  const d = el.dataset;
+  switch (d.act) {
+    case 'phase':
+      if (confirm('เปลี่ยนระดับสถานการณ์เป็นระดับ ' + d.level + ' ?')) run(() => api('/api/phase', 'PUT', { level: +d.level }), 'เปลี่ยนระดับแล้ว');
+      break;
+    case 'adjust': {
+      const v = parseFloat($('#amt-' + d.id).value);
+      if (!(v > 0)) return toast('ใส่จำนวนก่อน', true);
+      run(() => api(`/api/supplies/${d.id}/adjust`, 'POST', { delta: v * +d.sign }), 'อัปเดตยอดแล้ว');
+      break;
+    }
+    case 'del':
+      if (d.noconfirm || confirm('ลบรายการนี้?')) run(() => api(d.url, 'DELETE'));
+      break;
+    case 'toggle-item': run(() => api(`/api/checklists/items/${d.id}/toggle`, 'POST', {})); break;
+    case 'reset-checklist':
+      if (confirm('ล้างเครื่องหมายทั้งหมดในระดับนี้?')) run(() => api(`/api/checklists/${d.level}/reset`, 'POST', {}), 'รีเซ็ตแล้ว');
+      break;
+    case 'log-phase': logState.phase = +d.level; render(); break;
+    case 'open-doc': openDoc(d.path).catch(e => toast(e.message, true)); break;
+    case 'reindex':
+      api('/api/kb/reindex', 'POST', {}).then(r => { toast(`สแกนแล้ว: ${r.total} ไฟล์ (+${r.added} ~${r.updated} −${r.removed})`); refreshDocList(); })
+        .catch(e => toast(e.message, true));
+      break;
+  }
+});
+
+window.addEventListener('hashchange', render);
+// รีเฟรชแดชบอร์ดอัตโนมัติทุก 30 วิ เฉพาะเมื่อแท็บมองเห็นอยู่และไม่ได้กำลังพิมพ์ (ประหยัด CPU/แบต)
+setInterval(() => {
+  if (document.hidden) return;
+  tick();
+  if (current === 'dashboard' && !/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName)) render();
+}, 30000);
+render();
+
+</script>
+</body>
+</html>

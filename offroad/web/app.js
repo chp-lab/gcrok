@@ -42,6 +42,7 @@ function toast(msg, err) {
 }
 
 async function api(path, method = 'GET', body, retried = false) {
+  if (window.OFFROAD_API) return window.OFFROAD_API(path, method, body);   // โหมดไฟล์เดียว (ไม่มีเซิร์ฟเวอร์)
   const headers = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   const pin = store.get('offroad_pin');
@@ -199,10 +200,11 @@ function timelineCard(d) {
 
 async function viewDashboard() {
   const [d, meta] = await Promise.all([api('/api/dashboard'), api('/api/meta?port=' + (location.port || 80))]);
+  const note = meta.note ? `<section class="card"><h2>💾 ข้อมูลของคุณ</h2><div class="small">${esc(meta.note)}</div></section>` : '';
   const lan = meta.lan_urls.length ? `<section class="card"><h2>🛜 เปิดจากอุปกรณ์อื่น (Wi-Fi/Hotspot เดียวกัน)</h2>
       <div class="row wrap gap">${meta.lan_urls.map(u => `<code class="chip info">${esc(u)}</code>`).join('')}</div>
       <div class="small muted mt">อ่านได้ทันที · การแก้ไขข้อมูลจากเครื่องอื่นต้องใส่ PIN (แสดงตอนเปิดโปรแกรม)</div></section>` : '';
-  return { title: 'แดชบอร์ด', html: `<div class="grid">${phaseCard(d)}${powerCard(d)}${supplyCard(d)}${waterCard(d)}${commsCard(d)}${fleetCard(d)}${timelineCard(d)}${lan}</div>` };
+  return { title: 'แดชบอร์ด', html: `<div class="grid">${phaseCard(d)}${powerCard(d)}${supplyCard(d)}${waterCard(d)}${commsCard(d)}${fleetCard(d)}${timelineCard(d)}${lan}${note}</div>` };
 }
 
 // ───────────── view: supplies ─────────────
@@ -327,14 +329,17 @@ async function openDoc(path) {
   const doc = await api('/api/kb/doc?path=' + encodeURIComponent(path));
   if (doc.kind === 'md') el.innerHTML = `<div class="md">${md(doc.content)}</div>`;
   else if (doc.kind === 'txt') el.innerHTML = `<pre style="white-space:pre-wrap">${esc(doc.content)}</pre>`;
+  else if (doc.srcdoc != null) el.innerHTML = `<iframe class="doc" sandbox="allow-popups" srcdoc="${esc(doc.srcdoc)}" title="${esc(doc.title)}"></iframe>`;
   else el.innerHTML = `<iframe class="doc" src="${url}" ${doc.kind === 'html' ? 'sandbox="allow-popups"' : ''} title="${esc(doc.title)}"></iframe>
     <p class="small"><a href="${url}" target="_blank">เปิดในแท็บใหม่</a></p>`;
+  if (window.OFFROAD_DOC_TOOLS) el.insertAdjacentHTML('afterbegin', window.OFFROAD_DOC_TOOLS(path, doc.kind));
   refreshDocList();
 }
 async function viewKnowledge() {
   return { title: 'คลังความรู้', html: `<div class="kbgrid"><section class="card">
       <div class="row gap"><input id="kb-q" class="wide" type="search" placeholder="ค้นหาในเอกสารทั้งหมด…" value="${esc(kb.q)}">
-        <button class="sm" data-act="reindex" title="สแกนโฟลเดอร์ knowledge/ ใหม่">⟳</button></div>
+        <button class="sm js-reindex" data-act="reindex" title="สแกนโฟลเดอร์ knowledge/ ใหม่">⟳</button></div>
+      ${window.OFFROAD_KB_TOOLS || ''}
       <div id="kb-list" class="mt"></div></section>
       <section class="card" id="kb-view"><p class="muted">เลือกเอกสารทางซ้าย</p></section></div>`,
     after: async () => { await refreshDocList(); if (kb.path) openDoc(kb.path).catch(() => { kb.path = null; }); } };
