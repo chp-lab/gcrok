@@ -1,0 +1,9 @@
+data/
+__pycache__/
+*.pyc
+build/
+dist/
+*.spec
+
+# root .gitignore ของ repo ละเว้น index.html — หน้านี้เป็นไฟล์หลักของ UI ต้องเก็บ
+!web/index.html
