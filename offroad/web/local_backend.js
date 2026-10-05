@@ -4,6 +4,7 @@
  * ข้อมูลตั้งต้น window.OFFROAD_SEED ถูกสร้างจาก offroad/seed.py ตอน build (scripts/build_single_html.py) */
 (() => {
   window.OFFROAD_LOCAL = true;
+  document.body.classList.add('local');
   const KEY = 'offroad.v1';
   let db, persistOK = true;
 
@@ -385,7 +386,7 @@
     const a = el.dataset.local, path = el.dataset.path;
     try {
       if (a === 'kb-new') {
-        const title = (prompt('ชื่อเอกสารใหม่') || '').trim(); if (!title) return;
+        const title = ((await askText('ชื่อเอกสารใหม่')) || '').trim(); if (!title) return;
         const p = 'my_notes/' + title.replace(/[\\/:*?"<>|]/g, '_') + '.md';
         if (db.kb.some(d => d.path === p)) return toastMsg('มีเอกสารชื่อนี้แล้ว', true);
         saveDoc(p, title, `# ${title}\n\n`, 'md'); await refreshKb(); await openDoc(p); startEdit(p);
@@ -402,29 +403,48 @@
         });
       } else if (a === 'kb-edit') startEdit(path);
       else if (a === 'kb-del') {
-        if (!confirm('ลบเอกสารนี้?')) return;
+        if (!(await ask('ลบเอกสารนี้?', 'ลบ'))) return;
         db.kb = db.kb.filter(d => d.path !== path); persist(); kb.path = null;
         $('#kb-view').innerHTML = '<p class="muted">เลือกเอกสารทางซ้าย</p>'; await refreshKb();
-      } else if (a === 'backup') {
-        const d = new Date(); download(`offroad-backup-${ymd(d)}-${pad(d.getHours())}${pad(d.getMinutes())}.json`, JSON.stringify(db));
-        toastMsg('ดาวน์โหลดไฟล์สำรองแล้ว');
-      } else if (a === 'restore') {
-        pickFiles('.json,application/json', false, async ([f]) => {
-          try {
-            const data = JSON.parse(await f.text());
-            if (!data || !Array.isArray(data.supplies) || !data.station || !Array.isArray(data.kb)) throw new Error('bad');
-            if (!confirm('แทนที่ข้อมูลปัจจุบันทั้งหมดด้วยไฟล์สำรองนี้?')) return;
-            db = data; persist(); location.reload();
-          } catch { toastMsg('ไฟล์สำรองไม่ถูกต้อง', true); }
-        });
-      } else if (a === 'reset') {
-        if (confirm('ล้างข้อมูลทั้งหมดและเริ่มใหม่ด้วยข้อมูลตัวอย่าง? (แนะนำให้สำรองข้อมูลก่อน)')) {
+      } else if (a === 'backup') showBackup();
+      else if (a === 'restore') showRestore();
+      else if (a === 'reset') {
+        if (await ask('ล้างข้อมูลทั้งหมดและเริ่มใหม่ด้วยข้อมูลตัวอย่าง? (แนะนำให้สำรองข้อมูลก่อน)', 'ล้างข้อมูล')) {
           try { localStorage.removeItem(KEY); } catch { /* ignore */ }
           db = JSON.parse(JSON.stringify(window.OFFROAD_SEED)); persist(); location.reload();
         }
       }
     } catch (e) { toastMsg('ผิดพลาด: ' + e.message, true); }
   });
+
+  // สำรอง = คัดลอก JSON (ใช้ได้ทุกที่) หรือดาวน์โหลดไฟล์ (บางมุมมองบล็อกการดาวน์โหลด)
+  function showBackup() {
+    const text = JSON.stringify(db), d = new Date();
+    const m = modal(`<form method="dialog"><p><b>สำรองข้อมูล</b><br><span class="small muted">คัดลอกข้อความนี้ไปเก็บในไฟล์ข้อความ/โน้ต หรือกดดาวน์โหลดเป็นไฟล์ .json
+      (ถ้าปุ่มดาวน์โหลดไม่ทำงานในมุมมองนี้ ให้ใช้ปุ่มคัดลอก)</span></p>
+      <textarea id="bk-text" readonly>${esc(text)}</textarea><div class="row gap end mt">
+      <button type="button" id="bk-copy">คัดลอก</button><button type="button" id="bk-dl">ดาวน์โหลด .json</button>
+      <button class="primary" value="close">ปิด</button></div></form>`);
+    $('#bk-copy', m).onclick = async () => {
+      try { await navigator.clipboard.writeText(text); toastMsg('คัดลอกแล้ว'); }
+      catch { const t = $('#bk-text', m); t.select(); toastMsg('เลือกข้อความแล้ว กด Ctrl+C เพื่อคัดลอก'); }
+    };
+    $('#bk-dl', m).onclick = () => download(`offroad-backup-${ymd(d)}-${pad(d.getHours())}${pad(d.getMinutes())}.json`, text);
+  }
+  function showRestore() {
+    const m = modal(`<form method="dialog"><p><b>นำเข้าข้อมูลสำรอง</b><br><span class="small muted">เลือกไฟล์ .json หรือวางข้อความที่สำรองไว้ แล้วกดนำเข้า (ข้อมูลปัจจุบันจะถูกแทนที่)</span></p>
+      <input type="file" id="rs-file" accept=".json,application/json"><textarea id="rs-text" class="mt" placeholder="หรือวางข้อความ JSON ที่นี่"></textarea>
+      <div class="row gap end mt"><button value="no">ยกเลิก</button><button type="button" class="primary" id="rs-go">นำเข้า</button></div></form>`);
+    $('#rs-go', m).onclick = async () => {
+      try {
+        const f = $('#rs-file', m).files[0], data = JSON.parse(f ? await f.text() : $('#rs-text', m).value);
+        if (!data || !Array.isArray(data.supplies) || !data.station || !Array.isArray(data.kb)) throw new Error('bad');
+        m.close();
+        if (!(await ask('แทนที่ข้อมูลปัจจุบันทั้งหมดด้วยข้อมูลสำรองนี้?', 'นำเข้า'))) return;
+        db = data; persist(); location.reload();
+      } catch { toastMsg('ข้อมูลสำรองไม่ถูกต้อง', true); }
+    };
+  }
 
   function startEdit(path) {
     const d = db.kb.find(x => x.path === path); if (!d) return;

@@ -34,6 +34,30 @@ function ago(iso) {
 const opts = (map, sel) => Object.entries(map).map(([k, v]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${esc(v)}</option>`).join('');
 const dayName = iso => new Date(iso + 'T00:00').toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric' });
 
+// กล่องโต้ตอบในหน้า (แทน confirm/prompt ซึ่งบางตัวแสดงผลไม่ได้ เช่นใน Artifact viewer)
+function modal(html) {
+  const d = document.createElement('dialog');
+  d.className = 'dlg'; d.innerHTML = html;
+  d.addEventListener('close', () => d.remove());
+  document.body.appendChild(d); d.showModal();
+  return d;
+}
+function ask(msg, okLabel = 'ตกลง') {
+  return new Promise(res => {
+    const d = modal(`<form method="dialog"><p>${esc(msg)}</p><div class="row gap end">
+      <button value="no">ยกเลิก</button><button class="primary" value="yes" autofocus>${esc(okLabel)}</button></div></form>`);
+    d.addEventListener('close', () => res(d.returnValue === 'yes'));
+  });
+}
+function askText(msg, value = '') {
+  return new Promise(res => {
+    const d = modal(`<form method="dialog"><p>${esc(msg)}</p><input class="wide" name="v" value="${esc(value)}" autocomplete="off">
+      <div class="row gap end mt"><button value="no" formnovalidate>ยกเลิก</button><button class="primary" value="yes">ตกลง</button></div></form>`);
+    d.addEventListener('close', () => res(d.returnValue === 'yes' ? d.querySelector('input').value : null));
+    d.querySelector('input').focus();
+  });
+}
+
 let toastTimer;
 function toast(msg, err) {
   const t = $('#toast');
@@ -51,7 +75,7 @@ async function api(path, method = 'GET', body, retried = false) {
   if (r.status === 403 && !retried) {   // เครื่องอื่นใน LAN: ต้องใช้ PIN เพื่อแก้ไข
     const e = await r.json().catch(() => ({}));
     if (e.error === 'pin_required') {
-      const p = prompt('ใส่ PIN เพื่อแก้ไขข้อมูล (ดูได้ที่หน้าจอโปรแกรมบนเครื่องหลัก)');
+      const p = await askText('ใส่ PIN เพื่อแก้ไขข้อมูล (ดูได้ที่หน้าจอโปรแกรมบนเครื่องหลัก)');
       if (p) { store.set('offroad_pin', p.trim()); return api(path, method, body, true); }
     }
     throw new Error(e.error || 'forbidden');
@@ -429,13 +453,13 @@ app.addEventListener('submit', ev => {
   run(() => api(f.dataset.post, 'POST', body), f.dataset.toast);
 });
 
-app.addEventListener('click', ev => {
+app.addEventListener('click', async ev => {
   const el = ev.target.closest('[data-act]');
   if (!el || el.tagName === 'SELECT' || (el.type === 'checkbox' && ev.target !== el)) return;
   const d = el.dataset;
   switch (d.act) {
     case 'phase':
-      if (confirm('เปลี่ยนระดับสถานการณ์เป็นระดับ ' + d.level + ' ?')) run(() => api('/api/phase', 'PUT', { level: +d.level }), 'เปลี่ยนระดับแล้ว');
+      if (await ask('เปลี่ยนระดับสถานการณ์เป็นระดับ ' + d.level + ' ?')) run(() => api('/api/phase', 'PUT', { level: +d.level }), 'เปลี่ยนระดับแล้ว');
       break;
     case 'adjust': {
       const v = parseFloat($('#amt-' + d.id).value);
@@ -444,11 +468,11 @@ app.addEventListener('click', ev => {
       break;
     }
     case 'del':
-      if (d.noconfirm || confirm('ลบรายการนี้?')) run(() => api(d.url, 'DELETE'));
+      if (d.noconfirm || await ask('ลบรายการนี้?', 'ลบ')) run(() => api(d.url, 'DELETE'));
       break;
     case 'toggle-item': run(() => api(`/api/checklists/items/${d.id}/toggle`, 'POST', {})); break;
     case 'reset-checklist':
-      if (confirm('ล้างเครื่องหมายทั้งหมดในระดับนี้?')) run(() => api(`/api/checklists/${d.level}/reset`, 'POST', {}), 'รีเซ็ตแล้ว');
+      if (await ask('ล้างเครื่องหมายทั้งหมดในระดับนี้?')) run(() => api(`/api/checklists/${d.level}/reset`, 'POST', {}), 'รีเซ็ตแล้ว');
       break;
     case 'log-phase': logState.phase = +d.level; render(); break;
     case 'open-doc': openDoc(d.path).catch(e => toast(e.message, true)); break;

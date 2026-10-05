@@ -4,8 +4,10 @@
 ข้อมูลตั้งต้นดึงจาก offroad/seed.py + เอกสารใน knowledge/ เพื่อให้เป็นแหล่งเดียวกับเวอร์ชันเซิร์ฟเวอร์
 ใช้:  python scripts/build_single_html.py   ->  OffRoad.html
 """
+import argparse
 import json
 import os
+import re
 import sqlite3
 import sys
 import tempfile
@@ -70,6 +72,12 @@ def inline_js(text):
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--artifact", action="store_true",
+                    help="สร้างแบบไม่มี <html>/<head>/<body> สำหรับเผยแพร่เป็น Artifact (ระบบห่อโครงเอกสารให้เอง)")
+    ap.add_argument("-o", "--output", type=Path, default=None)
+    args = ap.parse_args()
+
     web = ROOT / "web"
     html = (web / "index.html").read_text(encoding="utf-8")
     css = (web / "style.css").read_text(encoding="utf-8")
@@ -79,10 +87,17 @@ def main():
         (web / "local_backend.js").read_text(encoding="utf-8"),
         (web / "app.js").read_text(encoding="utf-8"),
     ))
-    assert '<link rel="stylesheet" href="/style.css">' in html and '<script src="/app.js"></script>' in html
-    html = html.replace('<link rel="stylesheet" href="/style.css">', f"<style>\n{css}\n</style>")
-    html = html.replace('<script src="/app.js"></script>', scripts).replace("<body>", '<body class="local">')
-    out = ROOT / "OffRoad.html"
+    link, tag = '<link rel="stylesheet" href="/style.css">', '<script src="/app.js"></script>'
+    assert link in html and tag in html
+    if args.artifact:
+        body = re.search(r"<body>(.*)</body>", html, re.S).group(1).replace(tag, scripts)
+        html = f"<title>Off Road</title>\n<style>\n{css}\n</style>\n{body}\n"
+        default = ROOT / "dist" / "OffRoad.artifact.html"
+    else:
+        html = html.replace(link, f"<style>\n{css}\n</style>").replace(tag, scripts)
+        default = ROOT / "OffRoad.html"
+    out = args.output or default
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(html, encoding="utf-8")
     print(f"สร้าง {out} ({out.stat().st_size / 1024:.0f} KB)")
 
